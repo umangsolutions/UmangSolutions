@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "770214103193",
+    "firebase_url": "https://umang-solutions.firebaseio.com",
+    "project_id": "umang-solutions",
+    "storage_bucket": "umang-solutions.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:770214103193:android:8a267f4652597f53db9008",
+        "android_client_info": {
+          "package_name": "com.example.samplefirebase"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "770214103193-gk6r5bvapequqhtgb12gl29mlivd791t.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.samplefirebase",
+            "certificate_hash": "a367c9ac043b9d39c6d1aa60fe1fb68001de92d9"
+          }
+        },
+        {
+          "client_id": "770214103193-3ba2g62gkp5n1ntfs9fqv8er5mvb6ejj.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCZjlTKRIr8A71dgxaYCid7sTQSAcBe2AA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "770214103193-3ba2g62gkp5n1ntfs9fqv8er5mvb6ejj.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

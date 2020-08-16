@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@drawable/loginback"
+    android:fitsSystemWindows="true"
+    android:padding="25sp"
+    android:gravity="center"
+    tools:context=".MainActivity">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="25dp"
+        android:layout_marginLeft="8dp"
+        android:fontFamily="@font/muli_extrabold"
+        android:text="Umang Solutions"
+        android:textAllCaps="false"
+        android:textColor="@color/colorOrange"
+        android:textSize="30sp" />
+
+    <ImageView
+        android:layout_width="250dp"
+        android:layout_height="250dp"
+        android:src="@drawable/logo"
+        android:background="?attr/selectableItemBackground"
+        android:scaleType="fitCenter" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:fontFamily="@font/muli_semibold"
+        android:text="Revolution for Better Lives"
+        android:textAllCaps="false"
+        android:textSize="20sp"
+        android:layout_margin="25dp"
+        android:textStyle="italic"
+        android:layout_marginLeft="8dp"
+        android:textColor="@color/colorOrange"/>
+
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:weightSum="2"
+        android:layout_marginTop="25dp"
+        android:orientation="horizontal">
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="sign up"
+            android:layout_margin="8dp"
+            android:id="@+id/btnSignUp"
+            android:layout_weight="1"
+            android:layout_marginTop="20dp"
+            android:background="@color/colorBlue"
+            android:textColor="#fff"/>
+
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Sign IN"
+            android:id="@+id/btnSignIn"
+            android:layout_weight="1"
+            android:layout_margin="8dp"
+            android:layout_marginTop="20dp"
+            android:background="@color/colorBlue"
+            android:textColor="#fff"/>
+    </LinearLayout>
+
+
+</LinearLayout>

@@ -1,0 +1,30 @@
+<resources>
+    <!-- Base application theme. -->
+    <!--<style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar">
+        &lt;!&ndash; Customize your theme here. &ndash;&gt;
+        <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
+        <item name="colorAccent">@color/colorAccent</item>
+    </style>-->
+
+    <style name="AppTheme" parent="Theme.MaterialComponents.Light.NoActionBar.Bridge">
+        <!-- Customize your theme here. -->
+        <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="colorPrimaryDark">#ff7002</item>
+        <item name="colorAccent">@color/colorAccent</item>
+        <item name="fontFamily">@font/muli_semibold</item>
+    </style>
+
+
+    <!--Menu Styles-->
+    <style name="navigationTheme">
+
+        <!--Color of Text and icon when it is selected-->
+        <item name="colorPrimary">@color/colorPrimary</item>
+        <!--Background color when selected-->
+        <item name="colorControlHighlight">@color/colorOrange</item>
+
+    </style>
+
+
+</resources>
