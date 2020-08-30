@@ -2,14 +2,18 @@ package com.example.samplefirebase;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.PointF;
 import android.graphics.Rect;
+import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
@@ -19,6 +23,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.samplefirebase.adapters.FaceBitmapAdapter;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
@@ -41,9 +46,16 @@ public class FaceDetectionActivity extends AppCompatActivity {
 
     List<Rect> rectangles;
 
+    ImageView newImageView;
+
     InputImage image;
 
-    Bitmap bitmap;
+    List<Bitmap> facesBitmap;
+
+    FaceBitmapAdapter faceBitmapAdapter;
+    RecyclerView facesListRecylcer;
+
+    Bitmap bitmapImage,scaledBitmap;
 
     TextView txtNumber,tsmileProb,trightEyeOpen;
 
@@ -59,7 +71,14 @@ public class FaceDetectionActivity extends AppCompatActivity {
 
         btnSelectImage = findViewById(R.id.selectImage);
 
+        facesBitmap = new ArrayList<>();
+
+
         rectangles = new ArrayList<>();
+
+        facesListRecylcer = findViewById(R.id.facesList);
+
+        newImageView = findViewById(R.id.newImageView);
 
         drawView = findViewById(R.id.imageView);
 
@@ -116,9 +135,10 @@ public class FaceDetectionActivity extends AppCompatActivity {
         // Setting the Face Detector Options
         FaceDetectorOptions options =
                 new FaceDetectorOptions.Builder()
-                        .setClassificationMode(FaceDetectorOptions.PERFORMANCE_MODE_ACCURATE)
+                        .setPerformanceMode(FaceDetectorOptions.PERFORMANCE_MODE_ACCURATE)
                         .setLandmarkMode(FaceDetectorOptions.LANDMARK_MODE_ALL)
                         .setClassificationMode(FaceDetectorOptions.CLASSIFICATION_MODE_ALL)
+                        .setMinFaceSize(0f)
                         .enableTracking()
                         .build();
 
@@ -139,12 +159,19 @@ public class FaceDetectionActivity extends AppCompatActivity {
                                         // ...
 
                                         rectangles.clear();
+
+                                        facesBitmap.clear();
                                         for (Face face : faces) {
 
                                             Rect bounds = face.getBoundingBox();
 
                                             // adding dimensions of Rectangles to Arraylist
                                             rectangles.add(bounds);
+
+                                            Bitmap newBitmap = Bitmap.createBitmap(scaledBitmap,bounds.left,bounds.top,bounds.width(),bounds.height());
+
+                                            // adding the Bitmap of faces to the facesBitmap list
+                                            facesBitmap.add(newBitmap);
 
                                             float rotY = face.getHeadEulerAngleY();  // Head is rotated to the right rotY degrees
                                             float rotZ = face.getHeadEulerAngleZ();  // Head is tilted sideways rotZ degrees
@@ -181,13 +208,34 @@ public class FaceDetectionActivity extends AppCompatActivity {
 
 
                                         drawView.createRectangles(rectangles);
-                                        drawView.setImageBitmap(bitmap);
+                                        drawView.setImageBitmap(scaledBitmap);
 
-                                       // txtNumber.setText(faces.size());
+                                        Toast.makeText(FaceDetectionActivity.this, "Completed !", Toast.LENGTH_SHORT).show();
 
-                                        Toast.makeText(FaceDetectionActivity.this, ""+faces.size(), Toast.LENGTH_SHORT).show();
+                                        //Toast.makeText(FaceDetectionActivity.this, ""+ facesBitmap.size(), Toast.LENGTH_SHORT).show();
+
+                                        // Initialising the Recycler Adapter
+                                       // facesListRecylcer.setHasFixedSize(true);
+                                        //facesListRecylcer.setLayoutManager(new LinearLayoutManager(FaceDetectionActivity.this, LinearLayoutManager.VERTICAL,false));
+
+                                        faceBitmapAdapter = new FaceBitmapAdapter(FaceDetectionActivity.this,facesBitmap);
+                                        facesListRecylcer.setAdapter(faceBitmapAdapter);
+
+                                       // faceBitmapAdapter.notifyDataSetChanged();
 
 
+
+/*
+                                        drawView.buildDrawingCache();
+                                        Bitmap newBitmap = drawView.getDrawingCache();
+                                        newBitmap = Bitmap.createScaledBitmap(newBitmap,drawView.getWidth(),drawView.getHeight(),true);*/
+
+                                        newImageView.setImageBitmap(facesBitmap.get(0));
+
+
+                                        txtNumber.setText("No. of Faces Detected: " + Integer.toString(faces.size()));
+
+                                       // Toast.makeText(FaceDetectionActivity.this, ""+faces.size(), Toast.LENGTH_SHORT).show();
 
                                     }
                                 })
@@ -229,19 +277,24 @@ public class FaceDetectionActivity extends AppCompatActivity {
             filePath = data.getData();
             try {
 
-                image = InputImage.fromFilePath(getApplicationContext(), filePath);
+               //image = InputImage.fromFilePath(getApplicationContext(), filePath);
 
-                bitmap = MediaStore
+                bitmapImage = MediaStore
                         .Images
                         .Media
                         .getBitmap(
                                 getContentResolver(),
                                 filePath);
 
+                int nh = (int) ( bitmapImage.getHeight() * (512.0 / bitmapImage.getWidth()) );
+                scaledBitmap = Bitmap.createScaledBitmap(bitmapImage, 512, nh, true);
+
+
+                image = InputImage.fromBitmap(scaledBitmap,0);
 
                 detectFaces(image);
 
-                Toast.makeText(this, "Image Selected Successfully !", Toast.LENGTH_SHORT).show();
+                //Toast.makeText(this, "Image Selected Successfully !", Toast.LENGTH_SHORT).show();
 
                 // Setting image on image view using Bitmap
                /* Bitmap bitmap = MediaStore

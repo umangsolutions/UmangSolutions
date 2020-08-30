@@ -51,8 +51,8 @@ public class DrawView extends androidx.appcompat.widget.AppCompatImageView {
                 // FILL
                 canvas.drawRect(listRect.get(i), paint);
 
-                paint.setStrokeWidth(10);
-                paint.setColor(Color.BLUE);
+                paint.setStrokeWidth(2);
+                paint.setColor(Color.RED);
                 paint.setStyle(Paint.Style.STROKE);
                 // Border
                 canvas.drawRect(listRect.get(i), paint);
