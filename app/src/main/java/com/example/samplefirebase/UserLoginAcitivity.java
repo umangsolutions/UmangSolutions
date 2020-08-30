@@ -15,6 +15,8 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 
 public class UserLoginAcitivity extends AppCompatActivity {
 
@@ -23,6 +25,8 @@ public class UserLoginAcitivity extends AppCompatActivity {
     ImageView btnBack;
 
     String email,password;
+
+    DatabaseReference myRef;
 
     // Firebase Code
     FirebaseAuth mAuth;
@@ -39,6 +43,10 @@ public class UserLoginAcitivity extends AppCompatActivity {
         btnSignIn = findViewById(R.id.btnSignIn);
 
         mAuth = FirebaseAuth.getInstance();
+
+        myRef = FirebaseDatabase.getInstance().getReference("UserDetails");
+
+
 
         btnBack.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -73,6 +81,9 @@ public class UserLoginAcitivity extends AppCompatActivity {
                 if(task.isSuccessful()) {
                     Toast.makeText(UserLoginAcitivity.this, "Successfully Logged In!", Toast.LENGTH_SHORT).show();
 
+                    Intent intent = new Intent(UserLoginAcitivity.this,WelcomeActivity.class);
+                    intent.putExtra("email",email);
+                    startActivity(intent);
 
                 } else {
                     Toast.makeText(UserLoginAcitivity.this, "Invalid Credentials !", Toast.LENGTH_SHORT).show();
