@@ -57,6 +57,7 @@ public class DrawView extends androidx.appcompat.widget.AppCompatImageView {
                 // Border
                 canvas.drawRect(listRect.get(i), paint);
 
+
             }
         }
     }
