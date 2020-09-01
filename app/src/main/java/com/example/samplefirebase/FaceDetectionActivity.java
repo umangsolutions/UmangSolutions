@@ -5,6 +5,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
@@ -26,9 +27,16 @@ import android.widget.Toast;
 
 import com.example.samplefirebase.adapters.FaceBitmapAdapter;
 import com.example.samplefirebase.modals.FaceLandmarkData;
+import com.example.samplefirebase.modals.IndividualFaceData;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.OnProgressListener;
+import com.google.firebase.storage.StorageReference;
+import com.google.firebase.storage.UploadTask;
 import com.google.mlkit.vision.common.InputImage;
 import com.google.mlkit.vision.face.Face;
 import com.google.mlkit.vision.face.FaceDetection;
@@ -36,9 +44,12 @@ import com.google.mlkit.vision.face.FaceDetector;
 import com.google.mlkit.vision.face.FaceDetectorOptions;
 import com.google.mlkit.vision.face.FaceLandmark;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.UUID;
 
 public class FaceDetectionActivity extends AppCompatActivity {
 
@@ -51,6 +62,8 @@ public class FaceDetectionActivity extends AppCompatActivity {
     ImageView newImageView;
 
     InputImage image;
+
+    Button btnUploadFaces;
 
     List<FaceLandmarkData> facesLandmarkDataList;
 
@@ -65,6 +78,8 @@ public class FaceDetectionActivity extends AppCompatActivity {
 
     private final int PICK_IMAGE_REQUEST = 22;
 
+    StorageReference storageReference;
+
     PointF leftEarPos,rightEarPos, leftEyePos, rightEyePos, leftMouthPos, rightMouthPos, noseBasePos;
 
 
@@ -76,6 +91,11 @@ public class FaceDetectionActivity extends AppCompatActivity {
         btnSelectImage = findViewById(R.id.selectImage);
 
         facesLandmarkDataList = new ArrayList<>();
+
+        btnUploadFaces = findViewById(R.id.uploadFaces);
+
+        // creating Instances for Storage and Reference
+        storageReference = FirebaseStorage.getInstance().getReference();
 
 
         rectangles = new ArrayList<>();
@@ -95,6 +115,13 @@ public class FaceDetectionActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 selectImage();
+            }
+        });
+
+        btnUploadFaces.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                uploadImages();
             }
         });
 
@@ -203,7 +230,7 @@ public class FaceDetectionActivity extends AppCompatActivity {
                                             }
 
                                             //adding all the Faces Landmark Data to the FacesLandmarkData Array list
-                                            facesLandmarkDataList.add(new FaceLandmarkData(faceDetectedBitmap, leftEarPos, rightEarPos, leftEyePos, rightEyePos,leftMouthPos,rightMouthPos,noseBasePos));
+                                            facesLandmarkDataList.add(new FaceLandmarkData(faceDetectedBitmap, leftEarPos, rightEarPos, leftEyePos, rightEyePos,leftMouthPos,rightMouthPos,noseBasePos, ""));
 
 
                                             // If classification was enabled:
@@ -335,6 +362,101 @@ public class FaceDetectionActivity extends AppCompatActivity {
             } catch (IOException e) {
                 // Log the exception
                 e.printStackTrace();
+            }
+        }
+    }
+
+    private void uploadImages() {
+        if(facesLandmarkDataList!=null) {
+
+            // Code for showing progressDialog while uploading
+            final ProgressDialog progressDialog
+                    = new ProgressDialog(this);
+            progressDialog.setTitle("Uploading Data...");
+            progressDialog.setCancelable(false);
+            progressDialog.setCanceledOnTouchOutside(false);
+            progressDialog.show();
+
+
+
+
+            // adding listeners on upload
+            // or failure of image
+
+            for(int i=0; i<facesLandmarkDataList.size(); i++) {
+
+                Bitmap individualFaceBitmap = facesLandmarkDataList.get(i).getImageBitmap();
+
+                Date date = new Date();
+                String datetime = date.toString();
+
+                final DatabaseReference reference = FirebaseDatabase.getInstance().getReference().child("Faces_Detected").child(datetime);
+
+
+                // Defining the child of storageReference
+                final StorageReference ref = storageReference.child("Images/" + datetime + "/"+ UUID.randomUUID().toString());
+
+                // converting the obtained Bitmap to Bytes to send to Firebase
+
+                ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+                individualFaceBitmap.compress(Bitmap.CompressFormat.JPEG,100,byteArrayOutputStream);
+                final byte[] data = byteArrayOutputStream.toByteArray();
+
+                final int finalI = i;
+                ref.putBytes(data)
+                        .addOnSuccessListener(
+                                new OnSuccessListener<UploadTask.TaskSnapshot>() {
+
+                                    @Override
+                                    public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                                        // Image uploaded successfully
+                                        // Dismiss dialog
+                                        Task<Uri> uriTask = taskSnapshot.getStorage().getDownloadUrl();
+                                        while (!uriTask.isSuccessful()) ;
+
+                                        // getting the URL of image uploaded to
+                                        Uri downloadUrl = uriTask.getResult();
+
+                                        // sending Data to Realtime Database
+                                        String key = reference.push().getKey();
+                                        assert downloadUrl != null;
+                                        IndividualFaceData faceLandmarkData = new IndividualFaceData(facesLandmarkDataList.get(finalI).getLeftEar().toString(),facesLandmarkDataList.get(finalI).getRightEar().toString(),facesLandmarkDataList.get(finalI).getLeftEye().toString(),facesLandmarkDataList.get(finalI).getRightEye().toString(), facesLandmarkDataList.get(finalI).getLeftMouth().toString(), facesLandmarkDataList.get(finalI).getRightMouth().toString(),facesLandmarkDataList.get(finalI).getNoseBase().toString(), downloadUrl.toString());
+                                        reference.child(key).setValue(faceLandmarkData);
+
+                                        progressDialog.dismiss();
+                                        Toast.makeText(FaceDetectionActivity.this, "Faces Uploaded Successfully !", Toast.LENGTH_SHORT).show();
+
+                                    }
+                                })
+
+                        .addOnFailureListener(new OnFailureListener() {
+                            @Override
+                            public void onFailure(@NonNull Exception e) {
+
+                                // Error, Image not uploaded
+                                progressDialog.dismiss();
+                                Toast.makeText(FaceDetectionActivity.this,
+                                        "Failed " + e.getMessage(),
+                                        Toast.LENGTH_SHORT).show();
+                            }
+                        })
+                        .addOnProgressListener(
+                                new OnProgressListener<UploadTask.TaskSnapshot>() {
+
+                                    // Progress Listener for loading
+                                    // percentage on the dialog box
+                                    @Override
+                                    public void onProgress(
+                                            UploadTask.TaskSnapshot taskSnapshot) {
+                                        double progress
+                                                = (100.0
+                                                * taskSnapshot.getBytesTransferred()
+                                                / taskSnapshot.getTotalByteCount());
+                                        progressDialog.setMessage(
+                                                "Uploaded "
+                                                        + (int) progress + "%");
+                                    }
+                                });
             }
         }
     }

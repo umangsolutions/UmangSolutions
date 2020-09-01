@@ -62,6 +62,12 @@
             android:layout_height="wrap_content"
             android:id="@+id/landmarksData" />
 
+        <Button
+            android:id="@+id/uploadFaces"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Upload Faces" />
+
 
 
 

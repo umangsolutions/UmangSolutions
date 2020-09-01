@@ -7,12 +7,13 @@ public class FaceLandmarkData {
 
     private Bitmap imageBitmap;
     private PointF leftEar, rightEar, leftEye, rightEye, leftMouth, rightMouth, noseBase;
+    private String imageUrl;
 
     public FaceLandmarkData() {
 
     }
 
-    public FaceLandmarkData(Bitmap imageBitmap, PointF leftEar, PointF rightEar, PointF leftEye, PointF rightEye, PointF leftMouth, PointF rightMouth, PointF noseBase) {
+    public FaceLandmarkData(Bitmap imageBitmap, PointF leftEar, PointF rightEar, PointF leftEye, PointF rightEye, PointF leftMouth, PointF rightMouth, PointF noseBase, String imageUrl) {
         this.imageBitmap = imageBitmap;
         this.leftEar = leftEar;
         this.rightEar = rightEar;
@@ -21,6 +22,7 @@ public class FaceLandmarkData {
         this.leftMouth = leftMouth;
         this.rightMouth = rightMouth;
         this.noseBase = noseBase;
+        this.imageUrl = imageUrl;
     }
 
     public Bitmap getImageBitmap() {
@@ -85,5 +87,13 @@ public class FaceLandmarkData {
 
     public void setNoseBase(PointF noseBase) {
         this.noseBase = noseBase;
+    }
+
+    public String getImageUrl() {
+        return imageUrl;
+    }
+
+    public void setImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
     }
 }

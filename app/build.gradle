@@ -36,6 +36,7 @@ dependencies {
 
     implementation 'com.google.firebase:firebase-database:19.4.0'
 
+    implementation 'com.google.firebase:firebase-storage:19.2.0'
     testImplementation 'junit:junit:4.13'
     androidTestImplementation 'androidx.test.ext:junit:1.1.2'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.3.0'
@@ -55,8 +56,6 @@ dependencies {
 
     // Use this dependency to use dynamically downloaded model in Google Play Service
     implementation 'com.google.android.gms:play-services-mlkit-face-detection:16.1.1'
-
-
 
 
 }
