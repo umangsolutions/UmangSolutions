@@ -3,11 +3,12 @@ package com.example.samplefirebase.modals;
 public class IndividualFaceData {
     private String leftEar, rightEar, leftEye, rightEye, leftMouth, rightMouth, noseBase;
     private String imageUrl;
+    private String name;
 
     public IndividualFaceData() {
     }
 
-    public IndividualFaceData(String leftEar, String rightEar, String leftEye, String rightEye, String leftMouth, String rightMouth, String noseBase, String imageUrl) {
+    public IndividualFaceData(String leftEar, String rightEar, String leftEye, String rightEye, String leftMouth, String rightMouth, String noseBase, String imageUrl, String name) {
         this.leftEar = leftEar;
         this.rightEar = rightEar;
         this.leftEye = leftEye;
@@ -16,6 +17,7 @@ public class IndividualFaceData {
         this.rightMouth = rightMouth;
         this.noseBase = noseBase;
         this.imageUrl = imageUrl;
+        this.name = name;
     }
 
     public String getLeftEar() {
@@ -80,5 +82,13 @@ public class IndividualFaceData {
 
     public void setImageUrl(String imageUrl) {
         this.imageUrl = imageUrl;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 }
