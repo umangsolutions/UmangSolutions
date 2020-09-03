@@ -11,6 +11,7 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
+        <activity android:name=".RegisterFaceActivity"></activity>
         <activity android:name=".FaceDetectionActivity" />
         <activity android:name=".WelcomeActivity" />
         <activity android:name=".CardActivity" />
@@ -27,8 +28,6 @@
         <meta-data
             android:name="preloaded_fonts"
             android:resource="@array/preloaded_fonts" />
-
-
         <meta-data
             android:name="com.google.mlkit.vision.DEPENDENCIES"
             android:value="face" />

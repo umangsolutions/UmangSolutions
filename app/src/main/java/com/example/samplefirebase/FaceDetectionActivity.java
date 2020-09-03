@@ -28,6 +28,7 @@ import android.widget.Toast;
 import com.example.samplefirebase.adapters.FaceBitmapAdapter;
 import com.example.samplefirebase.modals.FaceLandmarkData;
 import com.example.samplefirebase.modals.IndividualFaceData;
+import com.example.samplefirebase.modals.RegisterFaceData;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
@@ -62,11 +63,16 @@ public class FaceDetectionActivity extends AppCompatActivity {
 
     List<Rect> rectangles;
 
+    List<Float> fetchedDistances;
+
     ImageView newImageView;
+
 
     InputImage image, filteredImage;
 
     Button btnUploadFaces, btnRecognizeFace;
+
+    float d1_val, d2_val, d3_val, d4_val, d5_val;
 
     List<FaceLandmarkData> facesLandmarkDataList, derivedFaceLandmarksList;
 
@@ -83,7 +89,7 @@ public class FaceDetectionActivity extends AppCompatActivity {
 
     private final int PICK_IMAGE_REQUEST = 22;
 
-    List<IndividualFaceData> individualFaceDataList;
+    List<RegisterFaceData> registerFaceDataList;
 
     StorageReference storageReference;
 
@@ -100,7 +106,8 @@ public class FaceDetectionActivity extends AppCompatActivity {
         btnSelectImage = findViewById(R.id.selectImage);
 
         facesLandmarkDataList = new ArrayList<>();
-        individualFaceDataList = new ArrayList<>();
+        registerFaceDataList = new ArrayList<>();
+        fetchedDistances = new ArrayList<>();
 
         btnUploadFaces = findViewById(R.id.uploadFaces);
         btnRecognizeFace = findViewById(R.id.recognizeFaces);
@@ -108,7 +115,7 @@ public class FaceDetectionActivity extends AppCompatActivity {
         // creating Instances for Storage and Reference
         storageReference = FirebaseStorage.getInstance().getReference();
 
-        myRef = FirebaseDatabase.getInstance().getReference().child("Faces_Detected").child("Tue Sep 01 20:35:44 GMT+05:30 2020");
+        myRef = FirebaseDatabase.getInstance().getReference().child("Faces_Data");
 
 
         rectangles = new ArrayList<>();
@@ -350,7 +357,6 @@ public class FaceDetectionActivity extends AppCompatActivity {
                                                            noseBasePosition = noseBase.getPosition();
                                                        }
 
-                                                       Toast.makeText(FaceDetectionActivity.this, ""+ leftEyePosition.toString(), Toast.LENGTH_SHORT).show();
 
                                                        derivedFaceLandmarksList.add(new FaceLandmarkData(foundBitmap, leftEarPosition, rightEarPosition, leftEyePosition, rightEyePosition,leftMouthPosition,rightMouthPosition,noseBasePosition, ""));
 
@@ -367,7 +373,7 @@ public class FaceDetectionActivity extends AppCompatActivity {
                                            });
 
 
-                                           txtLandMarksData.setText("LeftEarPos" + facesLandmarkDataList.get(0).getLeftEar().toString() + "\n" + "RightEarPos" + facesLandmarkDataList.get(0).getRightEar().toString() + "\n" +  "LeftEyePos" + facesLandmarkDataList.get(0).getLeftEye().toString() + "\n" +  "RightEyePos" + facesLandmarkDataList.get(0).getRightEye().toString() + "\n" +  "LeftMouthPos" + facesLandmarkDataList.get(0).getLeftMouth().toString() + "\n" +  "RightMouthPos" + facesLandmarkDataList.get(0).getRightMouth().toString() + "\n" +  "NosePos" + facesLandmarkDataList.get(0).getNoseBase());
+                                        //   txtLandMarksData.setText("LeftEarPos" + facesLandmarkDataList.get(0).getLeftEar().toString() + "\n" + "RightEarPos" + facesLandmarkDataList.get(0).getRightEar().toString() + "\n" +  "LeftEyePos" + facesLandmarkDataList.get(0).getLeftEye().toString() + "\n" +  "RightEyePos" + facesLandmarkDataList.get(0).getRightEye().toString() + "\n" +  "LeftMouthPos" + facesLandmarkDataList.get(0).getLeftMouth().toString() + "\n" +  "RightMouthPos" + facesLandmarkDataList.get(0).getRightMouth().toString() + "\n" +  "NosePos" + facesLandmarkDataList.get(0).getNoseBase());
                                        }
 
                                        String X_Coordinate =  getX_Coordinate(facesLandmarkDataList.get(0).getLeftEye().toString().replaceAll("^(PointF)",""));
@@ -396,6 +402,115 @@ public class FaceDetectionActivity extends AppCompatActivity {
     }
 
 
+    private void recognizeFaces() {
+
+
+            // Calculating Distances for the Faces Detected in the Image
+
+            String leftEye = derivedFaceLandmarksList.get(0).getLeftEye().toString().replaceAll("^(PointF)", "");
+            float leftEyePosX = Float.parseFloat(getX_Coordinate(leftEye));
+            float leftEyePosY = Float.parseFloat(getY_Coordinate(leftEye));
+
+
+            String rightEye = derivedFaceLandmarksList.get(0).getRightEye().toString().replaceAll("^(PointF)", "");
+            float rightEyePosX = Float.parseFloat(getX_Coordinate(rightEye));
+            float rightEyePosY = Float.parseFloat(getY_Coordinate(rightEye));
+
+
+            String noseBase = derivedFaceLandmarksList.get(0).getNoseBase().toString().replaceAll("^(PointF)", "");
+            float noseBasePosX = Float.parseFloat(getX_Coordinate(noseBase));
+            float noseBasePosY = Float.parseFloat(getY_Coordinate(noseBase));
+
+
+            String leftMouth = derivedFaceLandmarksList.get(0).getLeftMouth().toString().replaceAll("^(PointF)", "");
+            float leftMouthPosX = Float.parseFloat(getX_Coordinate(leftMouth));
+            float leftMouthPosY = Float.parseFloat(getY_Coordinate(leftMouth));
+
+            String rightMouth = derivedFaceLandmarksList.get(0).getRightMouth().toString().replaceAll("^(PointF)", "");
+            float rightMouthPosX = Float.parseFloat(getX_Coordinate(rightMouth));
+            float rightMouthPosY = Float.parseFloat(getY_Coordinate(rightMouth));
+
+            // d1 means Distance between Left Eye and Right Eye
+            d1_val = calculateEuclideanDistance(leftEyePosX, leftEyePosY, rightEyePosX, rightEyePosY);
+
+            // d2 means Distance between NoseBase and LeftEye
+            d2_val = calculateEuclideanDistance(noseBasePosX, noseBasePosY, leftEyePosX, leftEyePosY);
+
+            // d3 means Distance between NoseBase and RightEye
+            d3_val = calculateEuclideanDistance(noseBasePosX, noseBasePosY, rightEyePosX, rightEyePosY);
+
+            // d4 represents Distance between NoseBase and Left Mouth
+            d4_val = calculateEuclideanDistance(noseBasePosX, noseBasePosY, leftMouthPosX, leftMouthPosY);
+
+            // d5 represents Distance between NoseBase and Right Mouth
+            d5_val = calculateEuclideanDistance(noseBasePosX,noseBasePosY,rightMouthPosX, rightMouthPosY);
+
+
+
+            txtLandMarksData.setText("d1: " + d1_val + "\nd2: " + d2_val + "\nd3: " + d3_val + "\nd4: " + d4_val + "\nd5: " + d5_val );
+
+
+            // Retrieving Data of Faces available in Firebase
+            myRef.addValueEventListener(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot snapshot) {
+                    for(DataSnapshot dataSnapshot1 : snapshot.getChildren()) {
+                        RegisterFaceData registerFaceData = dataSnapshot1.getValue(RegisterFaceData.class);
+                        registerFaceDataList.add(registerFaceData);
+                    }
+
+                    int count = 0;
+
+                    for(int i=0; i<registerFaceDataList.size(); i++) {
+
+                        count = count + 1;
+                        // d1 means Distance between Left Eye and Right Eye
+                        float D1_VAL = registerFaceDataList.get(i).getD1_val();
+
+                        // d2 means Distance between NoseBase and LeftEye
+                        float D2_VAL = registerFaceDataList.get(i).getD2_val();
+
+                        // d3 means Distance between NoseBase and RightEye
+                        float D3_VAL = registerFaceDataList.get(i).getD3_val();
+
+                        // d4 represents Distance between NoseBase and Left Mouth
+                        float D4_VAL = registerFaceDataList.get(i).getD4_val();
+
+                        // d5 represents Distance between NoseBase and Right Mouth
+                        float D5_VAL = registerFaceDataList.get(i).getD5_val();
+
+                       // Toast.makeText(FaceDetectionActivity.this, ""+registerFaceDataList.get(i).getName(), Toast.LENGTH_SHORT).show();
+
+                      if( Math.abs(D1_VAL - d1_val)<=11.0 && Math.abs(D2_VAL-d2_val)<=11.0 && Math.abs(D3_VAL-d3_val)<=11.0 && Math.abs(D4_VAL-d4_val)<=11.0 && Math.abs(D5_VAL-d5_val)<=11.0) {
+                            // Face matched with Some person
+                            Toast.makeText(FaceDetectionActivity.this, "Hello, "+ registerFaceDataList.get(i).getName(), Toast.LENGTH_SHORT).show();
+                            break;
+                        }
+                    }
+
+                    if(count == registerFaceDataList.size()) {
+                        Toast.makeText(FaceDetectionActivity.this, "No matched Faces Found !!!", Toast.LENGTH_SHORT).show();
+                    }
+
+
+
+                   //Toast.makeText(FaceDetectionActivity.this, "Calculated Avg: " + calculatedAvg + "\n Recognized Avg:" + recognizedAvg, Toast.LENGTH_SHORT).show();
+
+                }
+
+                @Override
+                public void onCancelled(@NonNull DatabaseError error) {
+
+                    Toast.makeText(FaceDetectionActivity.this, ""+error.getMessage(), Toast.LENGTH_SHORT).show();
+                }
+            });
+    }
+
+    private float calculateEuclideanDistance(float x1, float y1, float x2, float y2) {
+        double d = Math.sqrt(Math.abs((double) Math.pow(Math.abs(x2-x1),2) + (double) Math.pow(Math.abs(y2-y1),2)));
+        return (float)d;
+    }
+    
 
     @Override
     protected void onActivityResult(int requestCode,
@@ -410,6 +525,7 @@ public class FaceDetectionActivity extends AppCompatActivity {
         // if request code is PICK_IMAGE_REQUEST and
         // resultCode is RESULT_OK
         // then set image in the image view
+
         if (requestCode == PICK_IMAGE_REQUEST
                 && resultCode == RESULT_OK
                 && data != null
@@ -419,7 +535,7 @@ public class FaceDetectionActivity extends AppCompatActivity {
             filePath = data.getData();
             try {
 
-               //image = InputImage.fromFilePath(getApplicationContext(), filePath);
+                //image = InputImage.fromFilePath(getApplicationContext(), filePath);
 
                 bitmapImage = MediaStore
                         .Images
@@ -574,111 +690,6 @@ public class FaceDetectionActivity extends AppCompatActivity {
     }
 
 
-    private void recognizeFaces() {
-        for (int i=0; i<derivedFaceLandmarksList.size(); i++) {
 
-            // Calculating Distances for the Faces Detected in the Image
-
-            String leftEye = derivedFaceLandmarksList.get(i).getLeftEye().toString().replaceAll("^(PointF)", "");
-            float leftEyePosX = Float.parseFloat(getX_Coordinate(leftEye));
-            float leftEyePosY = Float.parseFloat(getY_Coordinate(leftEye));
-
-
-            String rightEye = derivedFaceLandmarksList.get(i).getRightEye().toString().replaceAll("^(PointF)", "");
-            float rightEyePosX = Float.parseFloat(getX_Coordinate(rightEye));
-            float rightEyePosY = Float.parseFloat(getY_Coordinate(rightEye));
-
-
-            String noseBase = derivedFaceLandmarksList.get(i).getNoseBase().toString().replaceAll("^(PointF)", "");
-            float noseBasePosX = Float.parseFloat(getX_Coordinate(noseBase));
-            float noseBasePosY = Float.parseFloat(getY_Coordinate(noseBase));
-
-
-            String leftMouth = derivedFaceLandmarksList.get(i).getLeftMouth().toString().replaceAll("^(PointF)", "");
-            float leftMouthPosX = Float.parseFloat(getX_Coordinate(leftMouth));
-            float leftMouthPosY = Float.parseFloat(getY_Coordinate(leftMouth));
-
-            // d1 means Distance between NoseBase and LeftEye
-            float d1_val = calculateEuclideanDistance(noseBasePosX, noseBasePosY, leftEyePosX, leftEyePosY);
-
-            // d2 means Distance between NoseBase and RightEye
-            float d2_val = calculateEuclideanDistance(noseBasePosX, noseBasePosY, rightEyePosX, rightEyePosY);
-
-            // d1 means Distance between NoseBase and LeftMouth
-            float d3_val = calculateEuclideanDistance(noseBasePosX, noseBasePosY, leftMouthPosX, leftMouthPosY);
-
-            calculatedAvg = (float) ((d1_val + d2_val + d3_val) / 3);
-
-            Toast.makeText(FaceDetectionActivity.this, "Calculated Avg: " + calculatedAvg, Toast.LENGTH_SHORT).show();
-
-
-        }
-
-            // Retrieving Data of Faces available in Firebase
-            myRef.addValueEventListener(new ValueEventListener() {
-                @Override
-                public void onDataChange(@NonNull DataSnapshot snapshot) {
-                    for(DataSnapshot dataSnapshot1 : snapshot.getChildren()) {
-                        IndividualFaceData individualFaceData = dataSnapshot1.getValue(IndividualFaceData.class);
-                        individualFaceDataList.add(individualFaceData);
-                    }
-
-                    for(int i=0; i<individualFaceDataList.size(); i++) {
-
-                        String LEFT_EYE = individualFaceDataList.get(i).getLeftEye().replaceAll("^(PointF)","");
-                        float LEFT_EYE_X = Float.parseFloat(getX_Coordinate(LEFT_EYE));
-                        float LEFT_EYE_Y = Float.parseFloat(getY_Coordinate(LEFT_EYE));
-
-
-                        String RIGHT_EYE = individualFaceDataList.get(i).getRightEye().replaceAll("^(PointF)","");
-                        float RIGHT_EYE_X = Float.parseFloat(getX_Coordinate(RIGHT_EYE));
-                        float RIGHT_EYE_Y = Float.parseFloat(getY_Coordinate(RIGHT_EYE));
-
-
-                        String LEFT_MOUTH = individualFaceDataList.get(i).getLeftMouth().replaceAll("^(PointF)","");
-                        float LEFT_MOUTH_X = Float.parseFloat(getX_Coordinate(LEFT_MOUTH));
-                        float LEFT_MOUTH_Y = Float.parseFloat(getY_Coordinate(LEFT_MOUTH));
-
-
-                        String NOSE_BASE = individualFaceDataList.get(i).getNoseBase().replaceAll("^(PointF)","");
-                        float NOSE_BASE_X = Float.parseFloat(getX_Coordinate(NOSE_BASE));
-                        float NOSE_BASE_Y = Float.parseFloat(getY_Coordinate(NOSE_BASE));
-
-                        // d1 means Distance between NoseBase and LeftEye
-                        float D1_VAL = calculateEuclideanDistance(NOSE_BASE_X, NOSE_BASE_Y, LEFT_EYE_X, LEFT_EYE_Y);
-
-                        // d2 means Distance between NoseBase and RightEye
-                        float D2_VAL = calculateEuclideanDistance(NOSE_BASE_X, NOSE_BASE_Y, RIGHT_EYE_X, RIGHT_EYE_Y);
-
-                        // d1 means Distance between NoseBase and LeftMouth
-                        float D3_VAL = calculateEuclideanDistance(NOSE_BASE_X, NOSE_BASE_Y, LEFT_MOUTH_X, LEFT_MOUTH_Y);
-
-                        recognizedAvg = (float) ((D1_VAL+D2_VAL+D3_VAL)/3);
-                    }
-
-                   // Toast.makeText(FaceDetectionActivity.this, "Calculated Avg: " + calculatedAvg + "\n Recognized Avg:" + recognizedAvg, Toast.LENGTH_SHORT).show();
-
-                }
-
-                @Override
-                public void onCancelled(@NonNull DatabaseError error) {
-
-                    Toast.makeText(FaceDetectionActivity.this, ""+error.getMessage(), Toast.LENGTH_SHORT).show();
-                }
-            });
-
-
-
-
-
-
-
-
-    }
-
-    private float calculateEuclideanDistance(float x1, float y1, float x2, float y2) {
-        double d = Math.sqrt(Math.abs((double) Math.pow(Math.abs(x2-x1),2) - (double) Math.pow(Math.abs(y2-y1),2)));
-        return (float)d;
-    }
 
 }

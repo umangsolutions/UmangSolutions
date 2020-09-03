@@ -43,6 +43,13 @@
         android:layout_marginTop="15dp"
         android:id="@+id/faceDetection" />
 
+    <Button
+        android:id="@+id/btnFaceRegistration"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Face Registration"
+        android:layout_marginTop="15dp" />
+
 
 
 </LinearLayout>

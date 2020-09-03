@@ -43,7 +43,7 @@ public class WelcomeActivity extends AppCompatActivity {
 
     String  userName,rollNo,phone;
 
-    Button btnFaceDetection;
+    Button btnFaceDetection,btnFaceRegistration;
 
     // Tensorflow Interpreter
     //Interpreter interpreter;
@@ -61,6 +61,15 @@ public class WelcomeActivity extends AppCompatActivity {
         txtPhone = findViewById(R.id.phone);
 
         btnFaceDetection = findViewById(R.id.faceDetection);
+        btnFaceRegistration = findViewById(R.id.btnFaceRegistration);
+
+        btnFaceRegistration.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(WelcomeActivity.this, RegisterFaceActivity.class);
+                startActivity(intent);
+            }
+        });
 
 
         myRef = FirebaseDatabase.getInstance().getReference("UserDetails");
@@ -84,7 +93,7 @@ public class WelcomeActivity extends AppCompatActivity {
                     txtPhone.setText(phone);
 
                 } else {
-                    Toast.makeText(WelcomeActivity.this, "No Data Found !", Toast.LENGTH_SHORT).show();
+                  //  Toast.makeText(WelcomeActivity.this, "No Data Found !", Toast.LENGTH_SHORT).show();
                 }
             }
 

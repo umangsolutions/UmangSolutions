@@ -1,0 +1,187 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:orientation="vertical"
+    android:background="@drawable/loginback"
+    android:layout_height="match_parent"
+    tools:context=".RegisterFaceActivity">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:padding="5dp"
+        android:gravity="center_vertical"
+        android:alpha="0.9"
+        android:background="@color/colorOrange"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <ImageView
+            android:layout_width="35dp"
+            android:id="@+id/back_btn"
+            android:layout_height="wrap_content"
+            android:layout_margin="5dp"
+            android:src="@drawable/ic_baseline_keyboard_backspace_24"
+            app:tint="#fff" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Register Faces"
+            android:layout_margin="5dp"
+            android:textColor="#fff"
+            android:textSize="25sp"/>
+
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:padding="25dp"
+        android:gravity="center" >
+
+        <ImageView
+            android:id="@+id/imgFace"
+            android:layout_width="match_parent"
+            android:layout_height="200dp"
+            android:padding="10dp"
+            android:src="@drawable/admin"
+            android:layout_margin="0dp" />
+
+        <Button
+            android:id="@+id/btnUploadPhoto"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="5dp"
+            android:background="@color/colorBlue"
+            android:text="Upload Photo"
+            android:textColor="#fff"
+            android:textSize="12dp"
+            android:padding="10dp" />
+
+
+        <com.google.android.material.textfield.TextInputLayout
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Enter Name of Student"
+            app:boxStrokeColor="#000"
+            app:boxStrokeWidthFocused="2dp"
+            android:padding="5dp"
+            app:endIconMode="clear_text"
+            app:endIconTint="#000"
+            app:hintTextColor="#000"
+            app:startIconDrawable="@drawable/ic_baseline_account_circle_24"
+            app:startIconTint="#000">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:fontFamily="@font/muli_semibold"
+                android:inputType="text"
+                android:id="@+id/editName"
+                android:textColor="#000" />
+
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.textfield.TextInputLayout
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Enter JNTU Number"
+            app:boxStrokeColor="#000"
+            app:boxStrokeWidthFocused="2dp"
+            android:padding="5dp"
+            app:endIconMode="clear_text"
+            app:endIconTint="#000"
+            app:hintTextColor="#000"
+            app:startIconDrawable="@drawable/ic_baseline_beenhere_24"
+            app:startIconTint="#000">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:fontFamily="@font/muli_semibold"
+                android:inputType="text"
+                android:id="@+id/editJNTU"
+                android:textColor="#000" />
+
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.textfield.TextInputLayout
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Enter your Department"
+            app:boxStrokeColor="#000"
+            app:boxStrokeWidthFocused="2dp"
+            android:padding="5dp"
+            app:endIconMode="clear_text"
+            app:endIconTint="#000"
+            app:hintTextColor="#000"
+            app:startIconDrawable="@drawable/ic_baseline_business_24"
+            app:startIconTint="#000">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:fontFamily="@font/muli_semibold"
+                android:inputType="text"
+                android:id="@+id/editDepartment"
+                android:textColor="#000" />
+
+        </com.google.android.material.textfield.TextInputLayout>
+
+
+        <com.google.android.material.textfield.TextInputLayout
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Enter Section"
+            app:boxStrokeColor="#000"
+            app:boxStrokeWidthFocused="2dp"
+            android:padding="5dp"
+            app:endIconMode="clear_text"
+            app:endIconTint="#000"
+            app:hintTextColor="#000"
+            app:startIconDrawable="@drawable/ic_baseline_class_24"
+            app:startIconTint="#000">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:fontFamily="@font/muli_semibold"
+                android:inputType="text"
+                android:id="@+id/editSection"
+                android:textColor="#000" />
+
+        </com.google.android.material.textfield.TextInputLayout>
+
+
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="end"
+            android:text="Register Student"
+            android:id="@+id/btnRegister"
+            android:textAllCaps="false"
+            android:textSize="16dp"
+            android:textAlignment="textEnd"
+            android:drawableEnd="@drawable/ic_baseline_arrow_forward_ios_24"
+            android:drawableTint="#fff"
+            android:drawablePadding="5dp"
+            android:drawableTintMode="multiply"
+            android:layout_marginTop="20dp"
+            android:padding="15dp"
+            android:background="@color/colorBlue"
+            android:textColor="#fff"/>
+
+    </LinearLayout>
+
+
+
+
+</LinearLayout>
