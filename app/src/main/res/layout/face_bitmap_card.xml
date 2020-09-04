@@ -6,9 +6,10 @@
     android:layout_height="wrap_content">
 
     <ImageView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="112dp"
+        android:layout_height="112dp"
+        android:layout_margin="10dp"
         android:src="@drawable/admin"
-        android:id="@+id/helloView" />
+        android:id="@+id/imageView" />
 
 </LinearLayout>

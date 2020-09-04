@@ -11,26 +11,27 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.samplefirebase.R;
+import com.example.samplefirebase.modals.FaceLandmarkData;
 
 import java.util.List;
 
 public class FaceBitmapAdapter extends RecyclerView.Adapter<FaceBitmapAdapter.ViewHolder> {
 
-    Context context;
-    List<Bitmap> bitmaps;
+    private Context context;
+    private List<FaceLandmarkData> faceLandmarkData;
     LayoutInflater inflater;
 
 
-    public FaceBitmapAdapter(Context context, List<Bitmap> bitmaps) {
+    public FaceBitmapAdapter(Context context, List<FaceLandmarkData> faceLandmarkData) {
         this.context = context;
-        this.bitmaps = bitmaps;
+        this.faceLandmarkData = faceLandmarkData;
     }
 
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
 
-       View view = inflater.inflate(R.layout.face_bitmap_card, parent,false);
+       View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.face_bitmap_card, parent,false);
         return new ViewHolder(view);
     }
 
@@ -38,12 +39,12 @@ public class FaceBitmapAdapter extends RecyclerView.Adapter<FaceBitmapAdapter.Vi
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
 
         // loading bitmap from The list obtained
-        holder.imageView.setImageBitmap(bitmaps.get(position));
+        holder.imageView.setImageBitmap(faceLandmarkData.get(position).getImageBitmap());
     }
 
     @Override
     public int getItemCount() {
-        return bitmaps.size();
+        return faceLandmarkData.size();
     }
 
     public class ViewHolder extends RecyclerView.ViewHolder {
@@ -51,8 +52,7 @@ public class FaceBitmapAdapter extends RecyclerView.Adapter<FaceBitmapAdapter.Vi
         ImageView imageView;
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
-
-            imageView = itemView.findViewById(R.id.helloView);
+            imageView = itemView.findViewById(R.id.imageView);
         }
     }
 }

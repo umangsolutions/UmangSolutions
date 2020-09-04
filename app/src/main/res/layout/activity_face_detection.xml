@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:orientation="vertical"
+    android:gravity="center"
     android:background="@drawable/loginback"
     android:layout_gravity="center_vertical"
     android:layout_height="match_parent"
@@ -11,7 +12,7 @@
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="wrap_content"
         android:gravity="center"
         android:layout_margin="10dp"
         android:orientation="vertical" >
@@ -62,6 +63,15 @@
             android:layout_height="2dp"
             android:layout_marginTop="10dp"
             android:background="@color/colorOrange" />
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="15dp"
+            android:orientation="vertical"
+            android:id="@+id/facesDisplayList" />
+
+
 
 <!--
         <TextView
@@ -114,10 +124,11 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Recognize Faces"
+            android:visibility="gone"
             android:background="@color/colorBlue"
             android:textColor="#fff"/>
 
 
     </LinearLayout>
 
-</ScrollView>
+</LinearLayout>

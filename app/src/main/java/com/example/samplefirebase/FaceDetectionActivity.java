@@ -78,6 +78,8 @@ public class FaceDetectionActivity extends AppCompatActivity {
 
     DatabaseReference myRef;
 
+    RecyclerView facesDisplayList;
+
     FaceBitmapAdapter faceBitmapAdapter;
     RecyclerView facesListRecylcer;
 
@@ -93,6 +95,8 @@ public class FaceDetectionActivity extends AppCompatActivity {
 
     StorageReference storageReference;
 
+    FaceBitmapAdapter mFacesAdapter;
+
     PointF leftEarPosition,rightEarPosition, leftEyePosition, rightEyePosition, leftMouthPosition, rightMouthPosition, noseBasePosition,leftEarPos, rightEarPos,leftEyePos,rightEyePos,leftMouthPos,rightMouthPos,noseBasePos;
 
     float recognizedAvg, calculatedAvg;
@@ -104,6 +108,9 @@ public class FaceDetectionActivity extends AppCompatActivity {
         setContentView(R.layout.activity_face_detection);
 
         btnSelectImage = findViewById(R.id.selectImage);
+
+        // Recycler View
+        facesDisplayList = findViewById(R.id.facesDisplayList);
 
         facesLandmarkDataList = new ArrayList<>();
         registerFaceDataList = new ArrayList<>();
@@ -152,6 +159,8 @@ public class FaceDetectionActivity extends AppCompatActivity {
                 recognizeFaces();
             }
         });
+
+
 
     }
 
@@ -215,6 +224,7 @@ public class FaceDetectionActivity extends AppCompatActivity {
                                             // cutting the Faces using the Co-ordinates of Rect from Master Image
                                            Bitmap faceDetectedBitmap = Bitmap.createBitmap(scaledBitmap,face.getBoundingBox().left,face.getBoundingBox().top,face.getBoundingBox().width(),face.getBoundingBox().height());
 
+                                           Bitmap convertedBitmap = Bitmap.createScaledBitmap(faceDetectedBitmap,112,112,true);
                                             // adding the Bitmap of faces to the facesBitmap list
 
 
@@ -260,7 +270,7 @@ public class FaceDetectionActivity extends AppCompatActivity {
                                             }
 
                                             //adding all the Faces Landmark Data to the FacesLandmarkData Array list
-                                           facesLandmarkDataList.add(new FaceLandmarkData(faceDetectedBitmap, leftEarPos, rightEarPos, leftEyePos, rightEyePos,leftMouthPos,rightMouthPos,noseBasePos, ""));
+                                           facesLandmarkDataList.add(new FaceLandmarkData(convertedBitmap, leftEarPos, rightEarPos, leftEyePos, rightEyePos,leftMouthPos,rightMouthPos,noseBasePos, ""));
 
 
                                             // If classification was enabled:
@@ -306,9 +316,20 @@ public class FaceDetectionActivity extends AppCompatActivity {
                                         Bitmap newBitmap = drawView.getDrawingCache();
                                         newBitmap = Bitmap.createScaledBitmap(newBitmap,drawView.getWidth(),drawView.getHeight(),true);*/
 
+                                        if(facesLandmarkDataList !=null) {
+
+                                            mFacesAdapter = new FaceBitmapAdapter(FaceDetectionActivity.this, facesLandmarkDataList);
+                                            LinearLayoutManager linearLayoutManager = new LinearLayoutManager(FaceDetectionActivity.this, LinearLayoutManager.HORIZONTAL, false);
+                                            facesDisplayList.setLayoutManager(linearLayoutManager);
+                                            facesDisplayList.setAdapter(mFacesAdapter);
+
+                                        }
+
+
+/*
                                        if(facesLandmarkDataList != null) {
                                            final Bitmap foundBitmap = Bitmap.createScaledBitmap(facesLandmarkDataList.get(0).getImageBitmap(),112,112,true);
-                                           newImageView.setImageBitmap(foundBitmap);
+                                           //newImageView.setImageBitmap(foundBitmap);
 
                                            filteredImage = InputImage.fromBitmap(foundBitmap,0);
 
@@ -358,10 +379,8 @@ public class FaceDetectionActivity extends AppCompatActivity {
 
 
                                                        derivedFaceLandmarksList.add(new FaceLandmarkData(foundBitmap, leftEarPosition, rightEarPosition, leftEyePosition, rightEyePosition,leftMouthPosition,rightMouthPosition,noseBasePosition, ""));
-
-
-
                                                    }
+
 
                                                }
                                            }).addOnFailureListener(new OnFailureListener() {
@@ -374,6 +393,7 @@ public class FaceDetectionActivity extends AppCompatActivity {
 
                                         //   txtLandMarksData.setText("LeftEarPos" + facesLandmarkDataList.get(0).getLeftEar().toString() + "\n" + "RightEarPos" + facesLandmarkDataList.get(0).getRightEar().toString() + "\n" +  "LeftEyePos" + facesLandmarkDataList.get(0).getLeftEye().toString() + "\n" +  "RightEyePos" + facesLandmarkDataList.get(0).getRightEye().toString() + "\n" +  "LeftMouthPos" + facesLandmarkDataList.get(0).getLeftMouth().toString() + "\n" +  "RightMouthPos" + facesLandmarkDataList.get(0).getRightMouth().toString() + "\n" +  "NosePos" + facesLandmarkDataList.get(0).getNoseBase());
                                        }
+*/
 
                                        String X_Coordinate =  getX_Coordinate(facesLandmarkDataList.get(0).getLeftEye().toString().replaceAll("^(PointF)",""));
 

@@ -7,7 +7,7 @@ android {
 
     defaultConfig {
         applicationId "com.example.samplefirebase"
-        minSdkVersion 20
+        minSdkVersion 21
         targetSdkVersion 30
         versionCode 1
         versionName "1.0"
@@ -41,15 +41,20 @@ dependencies {
     androidTestImplementation 'androidx.test.ext:junit:1.1.2'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.3.0'
 
+    // Glide
+    implementation 'com.github.bumptech.glide:glide:4.11.0'
+    annotationProcessor 'com.github.bumptech.glide:compiler:4.11.0'
+
+
     //Firebase Analytics
     implementation 'com.google.firebase:firebase-analytics:17.5.0'
 
     //Material Design
     implementation 'com.google.android.material:material:1.3.0-alpha02'
 
-    /*//TensorFlow Lite Custom Models Dependencies
+    //TensorFlow Lite Custom Models Dependencies
     implementation 'com.google.firebase:firebase-ml-model-interpreter:22.0.4'
-    implementation 'org.tensorflow:tensorflow-lite:2.0.0'*/
+    implementation 'org.tensorflow:tensorflow-lite:2.0.0'
 
     // Face Detection API bundles with the App
     implementation 'com.google.mlkit:face-detection:16.0.2'
