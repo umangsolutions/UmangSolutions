@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -37,13 +38,12 @@ public class WelcomeActivity extends AppCompatActivity {
     // Model Name: PostureDetectionModel
 
 
-    TextView txtName,txtEmail,txtRoll,txtPhone;
 
     DatabaseReference myRef;
 
     String  userName,rollNo,phone;
 
-    Button btnFaceDetection,btnFaceRegistration;
+    LinearLayout btnFaceDetection,btnFaceRegistration;
 
     // Tensorflow Interpreter
     //Interpreter interpreter;
@@ -55,10 +55,6 @@ public class WelcomeActivity extends AppCompatActivity {
 
         final String email = getIntent().getStringExtra("email");
 
-        txtEmail = findViewById(R.id.email);
-        txtName = findViewById(R.id.name);
-        txtRoll = findViewById(R.id.roll);
-        txtPhone = findViewById(R.id.phone);
 
         btnFaceDetection = findViewById(R.id.faceDetection);
         btnFaceRegistration = findViewById(R.id.btnFaceRegistration);
@@ -71,6 +67,7 @@ public class WelcomeActivity extends AppCompatActivity {
             }
         });
 
+/*
 
         myRef = FirebaseDatabase.getInstance().getReference("UserDetails");
 
@@ -103,6 +100,7 @@ public class WelcomeActivity extends AppCompatActivity {
             }
         });
 
+*/
 
         btnFaceDetection.setOnClickListener(new View.OnClickListener() {
             @Override

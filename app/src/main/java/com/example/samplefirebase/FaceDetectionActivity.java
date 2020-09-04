@@ -109,7 +109,7 @@ public class FaceDetectionActivity extends AppCompatActivity {
         registerFaceDataList = new ArrayList<>();
         fetchedDistances = new ArrayList<>();
 
-        btnUploadFaces = findViewById(R.id.uploadFaces);
+        //btnUploadFaces = findViewById(R.id.uploadFaces);
         btnRecognizeFace = findViewById(R.id.recognizeFaces);
 
         // creating Instances for Storage and Reference
@@ -130,8 +130,6 @@ public class FaceDetectionActivity extends AppCompatActivity {
 
 
         txtNumber = findViewById(R.id.noOfFaces);
-        tsmileProb = findViewById(R.id.smileProb);
-        trightEyeOpen = findViewById(R.id.rightEyeOpen);
 
 
         btnSelectImage.setOnClickListener(new View.OnClickListener() {
@@ -141,13 +139,13 @@ public class FaceDetectionActivity extends AppCompatActivity {
             }
         });
 
-        btnUploadFaces.setOnClickListener(new View.OnClickListener() {
+      /*  btnUploadFaces.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 uploadImages();
             }
         });
-
+*/
         btnRecognizeFace.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -270,14 +268,14 @@ public class FaceDetectionActivity extends AppCompatActivity {
                                                 float smileProb = face.getSmilingProbability();
 
 
-                                                tsmileProb.setText("Smile Probability: " + Float.toString(smileProb));
+                                               // tsmileProb.setText("Smile Probability: " + Float.toString(smileProb));
 
 
                                             }
                                             if (face.getRightEyeOpenProbability() != null) {
                                                 float rightEyeOpenProb = face.getRightEyeOpenProbability();
 
-                                                trightEyeOpen.setText("Right Eye Open: " + Float.toString(rightEyeOpenProb));
+                                                // trightEyeOpen.setText("Right Eye Open: " + Float.toString(rightEyeOpenProb));
                                             }
 
 
@@ -285,10 +283,11 @@ public class FaceDetectionActivity extends AppCompatActivity {
                                             if (face.getTrackingId() != null) {
                                                 int id = face.getTrackingId();
                                             }
+
                                         }
 
 
-                                        drawView.createRectangles(rectangles);
+                                        //drawView.createRectangles(rectangles);
                                         drawView.setImageBitmap(scaledBitmap);
 
 
@@ -308,7 +307,7 @@ public class FaceDetectionActivity extends AppCompatActivity {
                                         newBitmap = Bitmap.createScaledBitmap(newBitmap,drawView.getWidth(),drawView.getHeight(),true);*/
 
                                        if(facesLandmarkDataList != null) {
-                                           final Bitmap foundBitmap = Bitmap.createScaledBitmap(facesLandmarkDataList.get(0).getImageBitmap(),470,470,true);
+                                           final Bitmap foundBitmap = Bitmap.createScaledBitmap(facesLandmarkDataList.get(0).getImageBitmap(),112,112,true);
                                            newImageView.setImageBitmap(foundBitmap);
 
                                            filteredImage = InputImage.fromBitmap(foundBitmap,0);
@@ -381,7 +380,7 @@ public class FaceDetectionActivity extends AppCompatActivity {
                                         String Y_Coordinate =  getY_Coordinate(facesLandmarkDataList.get(0).getLeftEye().toString().replaceAll("^(PointF)",""));
 
 
-                                        txtNumber.setText("No. of Faces Detected: " + Integer.toString(faces.size()) + "\nLeftEyePosX_cor" + X_Coordinate +"\nY_Coordinate" + Y_Coordinate);
+                                        txtNumber.setText("Number of Faces Detected: " + Integer.toString(faces.size()));
 
                                        // Toast.makeText(FaceDetectionActivity.this, ""+faces.size(), Toast.LENGTH_SHORT).show();
 

@@ -1,6 +1,7 @@
 package com.example.samplefirebase;
 
 import android.content.Context;
+import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
@@ -10,6 +11,7 @@ import android.os.Build;
 import android.util.AttributeSet;
 import android.widget.ImageView;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 
@@ -19,19 +21,30 @@ public class DrawView extends androidx.appcompat.widget.AppCompatImageView {
 
     private int noOfRectangles = 0;
     private List<Rect> listRect;
+    private Bitmap finalBitmap;
 
+    // Java Constructor
     public DrawView(Context context) {
         super(context);
     }
 
-    public DrawView(Context context, @Nullable AttributeSet attrs) {
+    // XML Constructor
+    public DrawView(@NonNull Context context, @Nullable AttributeSet attrs) {
+        super(context, attrs);
+    }
+
+    public DrawView(@NonNull Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
+        super(context, attrs, defStyleAttr);
+    }
+
+    /*  public DrawView(Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
     }
 
     public DrawView(Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
     }
-
+*/
     /*@RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     public DrawView(Context context, @Nullable AttributeSet attrs, int defStyleAttr, int defStyleRes) {
         super(context, attrs, defStyleAttr, defStyleRes);

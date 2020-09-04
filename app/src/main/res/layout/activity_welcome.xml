@@ -5,50 +5,64 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:gravity="center"
+    android:background="@drawable/loginback"
     android:orientation="vertical"
     tools:context=".WelcomeActivity">
 
-   <TextView
-       android:id="@+id/name"
-       android:layout_width="wrap_content"
-       android:layout_height="wrap_content"
-       android:textSize="25sp"
-       android:text="Name" />
-
-    <TextView
-        android:id="@+id/email"
-        android:layout_width="wrap_content"
-        android:textSize="25sp"
-        android:layout_height="wrap_content"
-        android:text="EMail ID" />
-
-    <TextView
-        android:id="@+id/phone"
-        android:layout_width="wrap_content"
-        android:textSize="25sp"
-        android:layout_height="wrap_content"
-        android:text="Phone Number" />
-
-    <TextView
-        android:id="@+id/roll"
-        android:layout_width="wrap_content"
-        android:textSize="25sp"
-        android:layout_height="wrap_content"
-        android:text="Roll Number" />
-
-    <Button
+    <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Open Face Detection"
-        android:layout_marginTop="15dp"
-        android:id="@+id/faceDetection" />
+        android:layout_margin="10dp"
+        android:id="@+id/faceDetection"
+        android:gravity="center_horizontal"
+        android:orientation="vertical" >
 
-    <Button
-        android:id="@+id/btnFaceRegistration"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Face Registration"
-        android:layout_marginTop="15dp" />
+     <ImageView
+         android:layout_width="200dp"
+         android:layout_height="200dp"
+         android:layout_gravity="center_horizontal"
+         android:fitsSystemWindows="true"
+         android:background="@color/colorOrange"
+         android:src="@drawable/recognize" />
+
+     <Button
+         android:layout_width="match_parent"
+         android:layout_height="wrap_content"
+         android:background="@color/colorBlue"
+         android:textColor="#fff"
+         android:text="Face Recognition"
+         android:layout_marginTop="0dp" />
+
+    </LinearLayout>
+
+     <LinearLayout
+         android:layout_width="wrap_content"
+         android:layout_height="wrap_content"
+         android:layout_margin="10dp"
+         android:id="@+id/btnFaceRegistration"
+         android:gravity="center_horizontal"
+         android:orientation="vertical" >
+
+      <ImageView
+          android:layout_width="200dp"
+          android:layout_height="200dp"
+          android:layout_gravity="center_horizontal"
+          android:fitsSystemWindows="true"
+          android:background="@color/colorOrange"
+          android:src="@drawable/detect" />
+
+      <Button
+          android:layout_width="match_parent"
+          android:layout_height="wrap_content"
+          android:background="@color/colorBlue"
+          android:textColor="#fff"
+          android:text="Face Registration"
+          android:layout_marginTop="0dp" />
+
+     </LinearLayout>
+
+
+
 
 
 

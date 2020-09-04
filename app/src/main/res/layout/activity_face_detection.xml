@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:orientation="vertical"
-    android:gravity="center"
+    android:background="@drawable/loginback"
     android:layout_gravity="center_vertical"
     android:layout_height="match_parent"
     tools:context=".FaceDetectionActivity">
@@ -13,30 +13,72 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:gravity="center"
+        android:layout_margin="10dp"
         android:orientation="vertical" >
 
-    <Button
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical">
+            <com.example.samplefirebase.DrawView
+                android:layout_width="match_parent"
+                android:layout_height="250dp"
+                android:id="@+id/imageView"
+                android:scaleType="fitXY"
+                android:src="@drawable/upload_face" />
+
+            <Button
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Select Image"
+                android:background="@color/colorBlue"
+                android:textColor="#fff"
+                android:id="@+id/selectImage" />
+        </LinearLayout>
+
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="2dp"
+            android:layout_marginTop="15dp"
+            android:background="@color/colorOrange" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="upload image to continue"
+            android:textSize="19dp"
+            android:id="@+id/noOfFaces"
+            android:textAllCaps="true"
+            android:drawableStart="@drawable/ic_baseline_account_circle_24"
+            android:drawableTint="@color/colorOrange"
+            android:textStyle="bold"
+            android:textColor="@color/colorOrange"
+            android:gravity="center"
+            android:layout_marginTop="8dp" />
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="2dp"
+            android:layout_marginTop="10dp"
+            android:background="@color/colorOrange" />
+
+<!--
+        <TextView
+
         android:layout_width="wrap_content"
+        android:textSize="16dp"
+        android:drawableStart="@drawable/ic_baseline_account_circle_24"
+        android:drawableTint="@color/colorBlue"
+        android:drawablePadding="10dp"
+        android:textColor="@color/colorBlue"
+        android:gravity="start"
+        android:layout_margin="15dp"
+        android:layout_gravity="start"
         android:layout_height="wrap_content"
-        android:text="Select Image"
-        android:id="@+id/selectImage" />
+        android:text="FacesDetected" />-->
 
-
-    <com.example.samplefirebase.DrawView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/imageView"
-        android:scaleType="fitXY"
-        android:src="@drawable/admin" />
-
-    <TextView
-        android:id="@+id/noOfFaces"
-        android:layout_width="wrap_content"
-        android:textSize="25dp"
-        android:layout_height="wrap_content"
-        android:text="FacesDetected" />
-
-    <TextView
+    <!--<TextView
         android:id="@+id/smileProb"
         android:layout_width="wrap_content"
         android:textSize="25dp"
@@ -49,9 +91,7 @@
         android:textSize="25dp"
         android:layout_height="wrap_content"
         android:text="FacesDetected" />
-
-
-
+-->
         <ImageView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -62,22 +102,20 @@
             android:layout_height="wrap_content"
             android:id="@+id/landmarksData" />
 
-        <Button
+      <!--  <Button
             android:id="@+id/uploadFaces"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Upload Faces" />
-
+-->
 
         <Button
             android:id="@+id/recognizeFaces"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Recognize Faces" />
-
-
-
-
+            android:text="Recognize Faces"
+            android:background="@color/colorBlue"
+            android:textColor="#fff"/>
 
 
     </LinearLayout>
