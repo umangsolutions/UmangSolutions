@@ -5,7 +5,20 @@ import android.content.res.AssetManager;
 import android.graphics.Bitmap;
 import android.graphics.RectF;
 import android.os.Trace;
+import android.util.Log;
 import android.util.Pair;
+import android.widget.Toast;
+
+import androidx.annotation.NonNull;
+
+import com.example.samplefirebase.RegisterFaceActivity;
+import com.example.samplefirebase.modals.RegisterFaceData;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.storage.FirebaseStorage;
 
 import org.tensorflow.lite.Interpreter;
 
@@ -22,6 +35,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Vector;
 import java.util.logging.Logger;
 
@@ -68,9 +82,93 @@ public class TFLiteObjectDetectionAPIModel implements SimilarityClassifier {
     // Face Mask Detector Output
     private float[][] output;
 
-    private HashMap<String, Recognition> registered = new HashMap<>();
-    public void register(String name, Recognition rec) {
-        registered.put(name, rec);
+    private HashMap<String, Recognition> registered;
+
+    private DatabaseReference databaseReference,myRef;
+
+
+
+    public void loadData() {
+
+        registered = new HashMap<>();
+
+        myRef = FirebaseDatabase.getInstance().getReference("Faces_Data");
+
+        myRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                if(snapshot.exists()) {
+
+                    for (DataSnapshot snapshot1 : snapshot.getChildren()) {
+                        //Fetching Data
+                       final String name = Objects.requireNonNull(snapshot1.getValue(RegisterFaceData.class)).getName();
+
+                        myRef.child("Recognition").addListenerForSingleValueEvent(new ValueEventListener() {
+                            @Override
+                            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                                if(snapshot.exists()) {
+                                    String id = snapshot.getValue(SimilarityClassifier.Recognition.class).getId();
+                                    String title = snapshot.getValue(SimilarityClassifier.Recognition.class).getTitle();
+                                    Float distance = snapshot.getValue(SimilarityClassifier.Recognition.class).getDistance();
+                                    Object extra = snapshot.getValue(SimilarityClassifier.Recognition.class).getExtra();
+                                    RectF location = snapshot.getValue(SimilarityClassifier.Recognition.class).getLocation();
+                                    Integer color = snapshot.getValue(SimilarityClassifier.Recognition.class).getColor();
+                                    Bitmap crop = null;
+
+                                    SimilarityClassifier.Recognition recognition = new SimilarityClassifier.Recognition(id,title,distance,null,location,color,crop);
+
+                                    registered.put(name,recognition);
+
+                                }
+                            }
+
+                            @Override
+                            public void onCancelled(@NonNull DatabaseError error) {
+                                 // Error Occurred
+                            }
+                        });
+
+                       //String id = Objects.requireNonNull(snapshot1.child("Recognition").);
+                       // String title = Objects.requireNonNull(snapshot1.child("Recognition").getValue(Recognition.class)).getTitle();
+                        //Float distance = Objects.requireNonNull(snapshot1.child("Recognition").getValue(Recognition.class)).getDistance();
+                        //Object extra = Objects.requireNonNull(snapshot1.child("Recognition").getValue(Recognition.class)).getExtra();
+                       // RectF location = Objects.requireNonNull(snapshot1.child("Recognition").getValue(Recognition.class)).getLocation();
+                        //Integer color = Objects.requireNonNull(snapshot1.child("Recognition").getValue(Recognition.class)).getColor();
+                        Bitmap crop = null;
+
+
+                       // SimilarityClassifier.Recognition recognition = snapshot1.child("Recognition").getValue(SimilarityClassifier.Recognition.class);
+
+                        // adding to Hash Map
+
+                    }
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                // Error Occurred. Toast Message not working
+            }
+        });
+    }
+
+    public void register(String name, String JNTU, String Department, String Section,Recognition rec) {
+
+        databaseReference = FirebaseDatabase.getInstance().getReference().child("Faces_Data");
+        //databaseReference.updateChildren(registered);
+
+
+        String key = databaseReference.push().getKey();
+
+        RegisterFaceData registerFaceData = new RegisterFaceData(name, JNTU, Section, Department, "");
+        Recognition recognition = new Recognition(rec.getId(),rec.getTitle(),rec.getDistance(),null,rec.getLocation(),rec.getColor(),null);
+
+        assert key != null;
+       databaseReference.child(key).setValue(registerFaceData);
+        databaseReference.child(key).child("Recognition").setValue(recognition);
+
+       // registered.put(name, rec);
+
     }
 
     private TFLiteObjectDetectionAPIModel() {}
@@ -145,9 +243,11 @@ public class TFLiteObjectDetectionAPIModel implements SimilarityClassifier {
 
     // looks for the nearest embeeding in the dataset (using L2 norm)
     // and retrurns the pair <id, distance>
+
     private Pair<String, Float> findNearest(float[] emb) {
 
         Pair<String, Float> ret = null;
+
         for (Map.Entry<String, Recognition> entry : registered.entrySet()) {
             final String name = entry.getKey();
             final float[] knownEmb = ((float[][]) entry.getValue().getExtra())[0];
@@ -168,12 +268,14 @@ public class TFLiteObjectDetectionAPIModel implements SimilarityClassifier {
     }
 
 
+
     @Override
     public List<Recognition> recognizeImage(final Bitmap bitmap, boolean storeExtra) {
+
         // Log this method so that it can be analyzed with systrace.
         Trace.beginSection("recognizeImage");
 
-        Trace.beginSection("preprocessBitmap");
+        Trace.beginSection("PreProcessBitmap");
         // Preprocess the image data from 0-255 int to normalized float based
         // on the provided parameters.
         bitmap.getPixels(intValues, 0, bitmap.getWidth(), 0, 0, bitmap.getWidth(), bitmap.getHeight());
@@ -225,11 +327,13 @@ public class TFLiteObjectDetectionAPIModel implements SimilarityClassifier {
 //    res += "]";
 
 
+        // Change to MAX_VALUE
         float distance = Float.MAX_VALUE;
         String id = "0";
         String label = "?";
 
-        if (registered.size() > 0) {
+
+    if (registered.size() > 0) {
             //LOGGER.i("dataset SIZE: " + registered.size());
             final Pair<String, Float> nearest = findNearest(embeedings[0]);
             if (nearest != null) {
@@ -245,14 +349,12 @@ public class TFLiteObjectDetectionAPIModel implements SimilarityClassifier {
         }
 
 
-        final int numDetectionsOutput = 1;
-        final ArrayList<Recognition> recognitions = new ArrayList<>(numDetectionsOutput);
-        Recognition rec = new Recognition(
-                id,
-                label,
-                distance,
-                new RectF());
 
+        final int numDetectionsOutput = 1;
+
+        final ArrayList<Recognition> recognitions = new ArrayList<>(numDetectionsOutput);
+
+        Recognition rec = new Recognition(id, label, distance, new RectF());
         recognitions.add( rec );
 
         if (storeExtra) {
@@ -261,6 +363,7 @@ public class TFLiteObjectDetectionAPIModel implements SimilarityClassifier {
 
         Trace.endSection();
         return recognitions;
+
     }
 
     @Override

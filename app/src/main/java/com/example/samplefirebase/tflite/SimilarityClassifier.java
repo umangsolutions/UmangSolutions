@@ -3,11 +3,14 @@ package com.example.samplefirebase.tflite;
 import android.graphics.Bitmap;
 import android.graphics.RectF;
 
+import java.security.SecureRandom;
 import java.util.List;
 
 public interface SimilarityClassifier {
 
-    void register(String name, Recognition recognition);
+    void register(String name, String JNTU, String department, String section,Recognition recognition);
+
+    void loadData();
 
     List<Recognition> recognizeImage(Bitmap bitmap, boolean getExtra);
 
@@ -52,6 +55,16 @@ public interface SimilarityClassifier {
             this.color = null;
             this.extra = null;
             this.crop = null;
+        }
+
+        public Recognition(String id, String title, Float distance, Object extra, RectF location, Integer color, Bitmap crop) {
+            this.id = id;
+            this.title = title;
+            this.distance = distance;
+            this.extra = null;
+            this.location = location;
+            this.color = color;
+            this.crop = crop;
         }
 
         public void setExtra(Object extra) {

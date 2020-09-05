@@ -15,6 +15,7 @@ import android.graphics.Paint;
 import android.graphics.Point;
 import android.graphics.PointF;
 import android.graphics.Rect;
+import android.graphics.RectF;
 import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
 import android.os.Bundle;
@@ -29,6 +30,8 @@ import com.example.samplefirebase.adapters.FaceBitmapAdapter;
 import com.example.samplefirebase.modals.FaceLandmarkData;
 import com.example.samplefirebase.modals.IndividualFaceData;
 import com.example.samplefirebase.modals.RegisterFaceData;
+import com.example.samplefirebase.tflite.SimilarityClassifier;
+import com.example.samplefirebase.tflite.TFLiteObjectDetectionAPIModel;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
@@ -52,6 +55,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.UUID;
 
@@ -95,11 +99,28 @@ public class FaceDetectionActivity extends AppCompatActivity {
 
     StorageReference storageReference;
 
+
+    SimilarityClassifier detector;
+    FaceDetector faceDetector;
+
     FaceBitmapAdapter mFacesAdapter;
 
-    PointF leftEarPosition,rightEarPosition, leftEyePosition, rightEyePosition, leftMouthPosition, rightMouthPosition, noseBasePosition,leftEarPos, rightEarPos,leftEyePos,rightEyePos,leftMouthPos,rightMouthPos,noseBasePos;
+    // MobileFaceNet
+    private static final int TF_OD_API_INPUT_SIZE = 112;
+    private static final boolean TF_OD_API_IS_QUANTIZED = false;
+    private static final String TF_OD_API_MODEL_FILE = "mobile_face_net.tflite";
 
-    float recognizedAvg, calculatedAvg;
+    private static final String TF_OD_API_LABELS_FILE = "file:///android_asset/labelmap.txt";
+
+    private Bitmap faceBmp = null;
+
+    //private static final DetectorMode MODE = DetectorMode.TF_OD_API;
+    // Minimum detection confidence to track a detection.
+    private static final float MINIMUM_CONFIDENCE_TF_OD_API = 0.5f;
+    private static final boolean MAINTAIN_ASPECT = false;
+
+    private List<SimilarityClassifier.Recognition> mappedRecognitions;
+
 
 
     @Override
@@ -111,6 +132,9 @@ public class FaceDetectionActivity extends AppCompatActivity {
 
         // Recycler View
         facesDisplayList = findViewById(R.id.facesDisplayList);
+
+        mappedRecognitions = new LinkedList<>();
+
 
         facesLandmarkDataList = new ArrayList<>();
         registerFaceDataList = new ArrayList<>();
@@ -138,6 +162,44 @@ public class FaceDetectionActivity extends AppCompatActivity {
 
         txtNumber = findViewById(R.id.noOfFaces);
 
+        // Setting the Face Detector Options
+        FaceDetectorOptions options =
+                new FaceDetectorOptions.Builder()
+                        .setPerformanceMode(FaceDetectorOptions.PERFORMANCE_MODE_ACCURATE)
+                        .setLandmarkMode(FaceDetectorOptions.LANDMARK_MODE_NONE)
+                        .setClassificationMode(FaceDetectorOptions.CLASSIFICATION_MODE_NONE)
+                        .setMinFaceSize(0f)
+                        .enableTracking()
+                        .build();
+
+
+        // Creating an instance
+        FaceDetector Fdetector = FaceDetection.getClient(options);
+
+        faceDetector = Fdetector;
+
+        // Initialising the Tensorflow Model
+        try {
+            detector =
+                    TFLiteObjectDetectionAPIModel.create(
+                            getAssets(),
+                            TF_OD_API_MODEL_FILE,
+                            TF_OD_API_LABELS_FILE,
+                            TF_OD_API_INPUT_SIZE,
+                            TF_OD_API_IS_QUANTIZED);
+
+
+            //cropSize = TF_OD_API_INPUT_SIZE;
+        } catch (final IOException e) {
+            e.printStackTrace();
+            Toast toast = Toast.makeText(getApplicationContext(), "Classifier could not be initialized", Toast.LENGTH_SHORT);
+            toast.show();
+            finish();
+        }
+
+        faceBmp = Bitmap.createBitmap(TF_OD_API_INPUT_SIZE, TF_OD_API_INPUT_SIZE, Bitmap.Config.ARGB_8888);
+
+
 
         btnSelectImage.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -146,20 +208,16 @@ public class FaceDetectionActivity extends AppCompatActivity {
             }
         });
 
-      /*  btnUploadFaces.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                uploadImages();
-            }
-        });
-*/
-        btnRecognizeFace.setOnClickListener(new View.OnClickListener() {
+       // detector.loadData();
+
+
+       /* btnRecognizeFace.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 recognizeFaces();
             }
         });
-
+*/
 
 
     }
@@ -182,28 +240,9 @@ public class FaceDetectionActivity extends AppCompatActivity {
 
     public void detectFaces(InputImage image) {
 
-
-
-        // Setting the Face Detector Options
-        final FaceDetectorOptions options =
-                new FaceDetectorOptions.Builder()
-                        .setPerformanceMode(FaceDetectorOptions.PERFORMANCE_MODE_ACCURATE)
-                        .setLandmarkMode(FaceDetectorOptions.LANDMARK_MODE_ALL)
-                        .setClassificationMode(FaceDetectorOptions.CLASSIFICATION_MODE_ALL)
-                        .setMinFaceSize(0f)
-                        .enableTracking()
-                        .build();
-
-
-        // Creating an instance
-        FaceDetector detector = FaceDetection.getClient(options);
-
-
-
         // For drawing Rectangle
-
         Task<List<Face>> result =
-                detector.process(image)
+                faceDetector.process(image)
                         .addOnSuccessListener(
                                 new OnSuccessListener<List<Face>>() {
                                     @Override
@@ -211,198 +250,17 @@ public class FaceDetectionActivity extends AppCompatActivity {
                                         // Task completed successfully
                                         // ...
 
-                                        rectangles.clear();
+                                        if(faces.size() == 0) {
+                                            Toast.makeText(FaceDetectionActivity.this, "No Faces Detected in the Given Image !", Toast.LENGTH_SHORT).show();
+                                        } else {
+                                            // loads Faces_Data from Firebase
 
-                                        facesLandmarkDataList.clear();
-                                        for (Face face : faces) {
-
-                                            Rect bounds = face.getBoundingBox();
-
-                                            // adding dimensions of Rectangles to Array List
-                                            rectangles.add(bounds);
-
-                                            // cutting the Faces using the Co-ordinates of Rect from Master Image
-                                           Bitmap faceDetectedBitmap = Bitmap.createBitmap(scaledBitmap,face.getBoundingBox().left,face.getBoundingBox().top,face.getBoundingBox().width(),face.getBoundingBox().height());
-
-                                           Bitmap convertedBitmap = Bitmap.createScaledBitmap(faceDetectedBitmap,112,112,true);
-                                            // adding the Bitmap of faces to the facesBitmap list
-
-
-                                            float rotY = face.getHeadEulerAngleY();  // Head is rotated to the right rotY degrees
-                                            float rotZ = face.getHeadEulerAngleZ();  // Head is tilted sideways rotZ degrees
-
-                                            // If landmark detection was enabled (mouth, ears, eyes, cheeks, and
-                                            // nose available):
-
-                                          FaceLandmark leftEar = face.getLandmark(FaceLandmark.LEFT_EAR);
-                                            if (leftEar != null) {
-                                                leftEarPos = leftEar.getPosition();
-                                            }
-
-                                            FaceLandmark rightEar = face.getLandmark(FaceLandmark.RIGHT_EAR);
-                                            if(rightEar !=null) {
-                                                rightEarPos =rightEar.getPosition();
-                                            }
-
-                                            FaceLandmark leftEyeCorner = face.getLandmark(FaceLandmark.LEFT_EYE);
-                                            if(leftEyeCorner !=null) {
-                                                leftEyePos = leftEyeCorner.getPosition();
-                                            }
-
-                                            FaceLandmark rightEyeCorner = face.getLandmark(FaceLandmark.RIGHT_EYE);
-                                            if(rightEyeCorner!=null) {
-                                                rightEyePos = rightEyeCorner.getPosition();
-                                            }
-
-                                            FaceLandmark leftMouth = face.getLandmark(FaceLandmark.MOUTH_LEFT);
-                                            if(leftMouth !=null) {
-                                                leftMouthPos = leftMouth.getPosition();
-                                            }
-
-                                            FaceLandmark rightMouth = face.getLandmark(FaceLandmark.MOUTH_RIGHT);
-                                            if(rightMouth !=null) {
-                                                rightMouthPos = rightMouth.getPosition();
-                                            }
-
-                                            FaceLandmark noseBase = face.getLandmark(FaceLandmark.NOSE_BASE);
-                                            if(noseBase !=null) {
-                                                noseBasePos = noseBase.getPosition();
-                                            }
-
-                                            //adding all the Faces Landmark Data to the FacesLandmarkData Array list
-                                           facesLandmarkDataList.add(new FaceLandmarkData(convertedBitmap, leftEarPos, rightEarPos, leftEyePos, rightEyePos,leftMouthPos,rightMouthPos,noseBasePos, ""));
-
-
-                                            // If classification was enabled:
-                                            if (face.getSmilingProbability() != null) {
-                                                float smileProb = face.getSmilingProbability();
-
-
-                                               // tsmileProb.setText("Smile Probability: " + Float.toString(smileProb));
-
-
-                                            }
-                                            if (face.getRightEyeOpenProbability() != null) {
-                                                float rightEyeOpenProb = face.getRightEyeOpenProbability();
-
-                                                // trightEyeOpen.setText("Right Eye Open: " + Float.toString(rightEyeOpenProb));
-                                            }
-
-
-                                            // If face tracking was enabled:
-                                            if (face.getTrackingId() != null) {
-                                                int id = face.getTrackingId();
-                                            }
-
+                                            onFacesDetected(faces, scaledBitmap);
                                         }
-
 
                                         //drawView.createRectangles(rectangles);
-                                        drawView.setImageBitmap(scaledBitmap);
-
-
-
-                                        //Toast.makeText(FaceDetectionActivity.this, "Completed !", Toast.LENGTH_SHORT).show();
-
-                                        //Toast.makeText(FaceDetectionActivity.this, ""+ facesBitmap.size(), Toast.LENGTH_SHORT).show();
-
-
-                                        //Toast.makeText(FaceDetectionActivity.this, ""+ facesLandmarkDataList.size(), Toast.LENGTH_SHORT).show();
-
-
-
-/*
-                                        drawView.buildDrawingCache();
-                                        Bitmap newBitmap = drawView.getDrawingCache();
-                                        newBitmap = Bitmap.createScaledBitmap(newBitmap,drawView.getWidth(),drawView.getHeight(),true);*/
-
-                                        if(facesLandmarkDataList !=null) {
-
-                                            mFacesAdapter = new FaceBitmapAdapter(FaceDetectionActivity.this, facesLandmarkDataList);
-                                            LinearLayoutManager linearLayoutManager = new LinearLayoutManager(FaceDetectionActivity.this, LinearLayoutManager.HORIZONTAL, false);
-                                            facesDisplayList.setLayoutManager(linearLayoutManager);
-                                            facesDisplayList.setAdapter(mFacesAdapter);
-
-                                        }
-
-
-/*
-                                       if(facesLandmarkDataList != null) {
-                                           final Bitmap foundBitmap = Bitmap.createScaledBitmap(facesLandmarkDataList.get(0).getImageBitmap(),112,112,true);
-                                           //newImageView.setImageBitmap(foundBitmap);
-
-                                           filteredImage = InputImage.fromBitmap(foundBitmap,0);
-
-                                           FaceDetector faceDetector = FaceDetection.getClient(options);
-
-                                           Task<List<Face>> result = faceDetector.process(filteredImage).addOnSuccessListener(new OnSuccessListener<List<Face>>() {
-                                               @Override
-                                               public void onSuccess(List<Face> faces) {
-
-                                                   derivedFaceLandmarksList.clear();
-                                                   for (Face face : faces) {
-
-                                                       FaceLandmark leftEar = face.getLandmark(FaceLandmark.LEFT_EAR);
-                                                       if (leftEar != null) {
-                                                           leftEarPosition = leftEar.getPosition();
-                                                       }
-
-                                                       FaceLandmark rightEar = face.getLandmark(FaceLandmark.RIGHT_EAR);
-                                                       if(rightEar !=null) {
-                                                           rightEarPosition =rightEar.getPosition();
-                                                       }
-
-                                                       FaceLandmark leftEyeCorner = face.getLandmark(FaceLandmark.LEFT_EYE);
-                                                       if(leftEyeCorner !=null) {
-                                                           leftEyePosition = leftEyeCorner.getPosition();
-                                                       }
-
-                                                       FaceLandmark rightEyeCorner = face.getLandmark(FaceLandmark.RIGHT_EYE);
-                                                       if(rightEyeCorner!=null) {
-                                                           rightEyePosition = rightEyeCorner.getPosition();
-                                                       }
-
-                                                       FaceLandmark leftMouth = face.getLandmark(FaceLandmark.MOUTH_LEFT);
-                                                       if(leftMouth !=null) {
-                                                           leftMouthPosition = leftMouth.getPosition();
-                                                       }
-
-                                                       FaceLandmark rightMouth = face.getLandmark(FaceLandmark.MOUTH_RIGHT);
-                                                       if(rightMouth !=null) {
-                                                           rightMouthPosition = rightMouth.getPosition();
-                                                       }
-
-                                                       FaceLandmark noseBase = face.getLandmark(FaceLandmark.NOSE_BASE);
-                                                       if(noseBase !=null) {
-                                                           noseBasePosition = noseBase.getPosition();
-                                                       }
-
-
-                                                       derivedFaceLandmarksList.add(new FaceLandmarkData(foundBitmap, leftEarPosition, rightEarPosition, leftEyePosition, rightEyePosition,leftMouthPosition,rightMouthPosition,noseBasePosition, ""));
-                                                   }
-
-
-                                               }
-                                           }).addOnFailureListener(new OnFailureListener() {
-                                               @Override
-                                               public void onFailure(@NonNull Exception e) {
-                                                   Toast.makeText(FaceDetectionActivity.this, ""+e.getMessage(), Toast.LENGTH_SHORT).show();
-                                               }
-                                           });
-
-
-                                        //   txtLandMarksData.setText("LeftEarPos" + facesLandmarkDataList.get(0).getLeftEar().toString() + "\n" + "RightEarPos" + facesLandmarkDataList.get(0).getRightEar().toString() + "\n" +  "LeftEyePos" + facesLandmarkDataList.get(0).getLeftEye().toString() + "\n" +  "RightEyePos" + facesLandmarkDataList.get(0).getRightEye().toString() + "\n" +  "LeftMouthPos" + facesLandmarkDataList.get(0).getLeftMouth().toString() + "\n" +  "RightMouthPos" + facesLandmarkDataList.get(0).getRightMouth().toString() + "\n" +  "NosePos" + facesLandmarkDataList.get(0).getNoseBase());
-                                       }
-*/
-
-                                       String X_Coordinate =  getX_Coordinate(facesLandmarkDataList.get(0).getLeftEye().toString().replaceAll("^(PointF)",""));
-
-                                        String Y_Coordinate =  getY_Coordinate(facesLandmarkDataList.get(0).getLeftEye().toString().replaceAll("^(PointF)",""));
-
-
+                                       // drawView.setImageBitmap(scaledBitmap);
                                         txtNumber.setText("Number of Faces Detected: " + Integer.toString(faces.size()));
-
-                                       // Toast.makeText(FaceDetectionActivity.this, ""+faces.size(), Toast.LENGTH_SHORT).show();
 
                                     }
                                 })
@@ -412,62 +270,109 @@ public class FaceDetectionActivity extends AppCompatActivity {
                                     public void onFailure(@NonNull Exception e) {
                                         // Task failed with an exception
                                         // ...
-
-
                                         Toast.makeText(FaceDetectionActivity.this, ""+e.getMessage(), Toast.LENGTH_SHORT).show();
                                     }
                                 });
 
     }
 
+    private void onFacesDetected(List<Face> faces, Bitmap scaledBitmap) {
 
+        final Canvas cvFace = new Canvas(faceBmp);
+
+        mappedRecognitions =
+                new LinkedList<SimilarityClassifier.Recognition>();
+
+        for (Face face: faces) {
+
+            final RectF boundingBox = new RectF(face.getBoundingBox());
+
+            final boolean goodConfidence = true; //face.get;
+
+            if(boundingBox!=null && goodConfidence) {
+
+                RectF faceBB = new RectF(boundingBox);
+
+                float sx = ((float) TF_OD_API_INPUT_SIZE) / faceBB.width();
+                float sy = ((float) TF_OD_API_INPUT_SIZE) / faceBB.height();
+                Matrix matrix = new Matrix();
+                matrix.postTranslate(-faceBB.left, -faceBB.top);
+                matrix.postScale(sx, sy);
+
+                cvFace.drawBitmap(scaledBitmap,matrix,null);
+
+                String label = "";
+                float confidence = -1f;
+                Integer color = Color.BLUE;
+                Object extra = null;
+                Bitmap crop = null;
+
+                crop = Bitmap.createBitmap(scaledBitmap,
+                        (int) faceBB.left,
+                        (int) faceBB.top,
+                        (int) faceBB.width(),
+                        (int) faceBB.height());
+
+                final List<SimilarityClassifier.Recognition> resultsAux = detector.recognizeImage(faceBmp,true);
+
+
+                if (resultsAux.size() > 0) {
+
+                    SimilarityClassifier.Recognition result = resultsAux.get(0);
+
+                    extra = result.getExtra();
+
+                    float conf = result.getDistance();
+                    Toast.makeText(this, ""+conf, Toast.LENGTH_SHORT).show();
+                    if (conf < 1.0f) {
+
+                        confidence = conf;
+                        label = result.getTitle();
+
+                        Toast.makeText(FaceDetectionActivity.this, "Found: " + label, Toast.LENGTH_SHORT).show();
+
+                     //   facesLandmarkDataList.add(result.getCrop(), result.getTitle(),result.);
+
+                        if (result.getId().equals("0")) {
+                            color = Color.GREEN;
+                        }
+                        else {
+                            color = Color.RED;
+                        }
+                    }
+                }
+
+                // setting Features of the Face
+                final SimilarityClassifier.Recognition result = new SimilarityClassifier.Recognition(
+                        "0", label, confidence, boundingBox);
+
+                result.setColor(color);
+                result.setLocation(boundingBox);
+                result.setExtra(extra);
+                result.setCrop(crop);
+
+                // adding to List
+                mappedRecognitions.add(result);
+
+                if(facesLandmarkDataList !=null) {
+
+                    mFacesAdapter = new FaceBitmapAdapter(FaceDetectionActivity.this, facesLandmarkDataList);
+                    LinearLayoutManager linearLayoutManager = new LinearLayoutManager(FaceDetectionActivity.this, LinearLayoutManager.HORIZONTAL, false);
+                    facesDisplayList.setLayoutManager(linearLayoutManager);
+                    facesDisplayList.setAdapter(mFacesAdapter);
+
+                } else {
+                    Toast.makeText(FaceDetectionActivity.this, "No Data Found !", Toast.LENGTH_SHORT).show();
+                }
+
+            }
+        }
+    }
+
+
+
+/*
     private void recognizeFaces() {
-
-
-            // Calculating Distances for the Faces Detected in the Image
-
-            String leftEye = derivedFaceLandmarksList.get(0).getLeftEye().toString().replaceAll("^(PointF)", "");
-            float leftEyePosX = Float.parseFloat(getX_Coordinate(leftEye));
-            float leftEyePosY = Float.parseFloat(getY_Coordinate(leftEye));
-
-
-            String rightEye = derivedFaceLandmarksList.get(0).getRightEye().toString().replaceAll("^(PointF)", "");
-            float rightEyePosX = Float.parseFloat(getX_Coordinate(rightEye));
-            float rightEyePosY = Float.parseFloat(getY_Coordinate(rightEye));
-
-
-            String noseBase = derivedFaceLandmarksList.get(0).getNoseBase().toString().replaceAll("^(PointF)", "");
-            float noseBasePosX = Float.parseFloat(getX_Coordinate(noseBase));
-            float noseBasePosY = Float.parseFloat(getY_Coordinate(noseBase));
-
-
-            String leftMouth = derivedFaceLandmarksList.get(0).getLeftMouth().toString().replaceAll("^(PointF)", "");
-            float leftMouthPosX = Float.parseFloat(getX_Coordinate(leftMouth));
-            float leftMouthPosY = Float.parseFloat(getY_Coordinate(leftMouth));
-
-            String rightMouth = derivedFaceLandmarksList.get(0).getRightMouth().toString().replaceAll("^(PointF)", "");
-            float rightMouthPosX = Float.parseFloat(getX_Coordinate(rightMouth));
-            float rightMouthPosY = Float.parseFloat(getY_Coordinate(rightMouth));
-
-            // d1 means Distance between Left Eye and Right Eye
-            d1_val = calculateEuclideanDistance(leftEyePosX, leftEyePosY, rightEyePosX, rightEyePosY);
-
-            // d2 means Distance between NoseBase and LeftEye
-            d2_val = calculateEuclideanDistance(noseBasePosX, noseBasePosY, leftEyePosX, leftEyePosY);
-
-            // d3 means Distance between NoseBase and RightEye
-            d3_val = calculateEuclideanDistance(noseBasePosX, noseBasePosY, rightEyePosX, rightEyePosY);
-
-            // d4 represents Distance between NoseBase and Left Mouth
-            d4_val = calculateEuclideanDistance(noseBasePosX, noseBasePosY, leftMouthPosX, leftMouthPosY);
-
-            // d5 represents Distance between NoseBase and Right Mouth
-            d5_val = calculateEuclideanDistance(noseBasePosX,noseBasePosY,rightMouthPosX, rightMouthPosY);
-
-
-
-            txtLandMarksData.setText("d1: " + d1_val + "\nd2: " + d2_val + "\nd3: " + d3_val + "\nd4: " + d4_val + "\nd5: " + d5_val );
-
 
             // Retrieving Data of Faces available in Firebase
             myRef.addValueEventListener(new ValueEventListener() {
@@ -512,9 +417,6 @@ public class FaceDetectionActivity extends AppCompatActivity {
                     }
 
 
-
-                   //Toast.makeText(FaceDetectionActivity.this, "Calculated Avg: " + calculatedAvg + "\n Recognized Avg:" + recognizedAvg, Toast.LENGTH_SHORT).show();
-
                 }
 
                 @Override
@@ -524,12 +426,7 @@ public class FaceDetectionActivity extends AppCompatActivity {
                 }
             });
     }
-
-    private float calculateEuclideanDistance(float x1, float y1, float x2, float y2) {
-        double d = Math.sqrt(Math.abs((double) Math.pow(Math.abs(x2-x1),2) + (double) Math.pow(Math.abs(y2-y1),2)));
-        return (float)d;
-    }
-    
+*/
 
     @Override
     protected void onActivityResult(int requestCode,
@@ -575,19 +472,6 @@ public class FaceDetectionActivity extends AppCompatActivity {
 
                 detectFaces(image);
 
-                //Toast.makeText(this, "Image Selected Successfully !", Toast.LENGTH_SHORT).show();
-
-                // Setting image on image view using Bitmap
-               /* Bitmap bitmap = MediaStore
-                        .Images
-                        .Media
-                        .getBitmap(
-                                getContentResolver(),
-                                filePath);
-
-
-                //imageView.setImageBitmap(bitmap);
-*/
             } catch (IOException e) {
                 // Log the exception
                 e.printStackTrace();
@@ -595,100 +479,6 @@ public class FaceDetectionActivity extends AppCompatActivity {
         }
     }
 
-    private void uploadImages() {
-        if(facesLandmarkDataList!=null) {
-
-            // Code for showing progressDialog while uploading
-            final ProgressDialog progressDialog
-                    = new ProgressDialog(this);
-            progressDialog.setTitle("Uploading Data...");
-            progressDialog.setCancelable(false);
-            progressDialog.setCanceledOnTouchOutside(false);
-            progressDialog.show();
-
-
-
-
-            // adding listeners on upload
-            // or failure of image
-
-            for(int i=0; i<facesLandmarkDataList.size(); i++) {
-
-                Bitmap individualFaceBitmap = facesLandmarkDataList.get(i).getImageBitmap();
-
-                Date date = new Date();
-                String datetime = date.toString();
-
-                final DatabaseReference reference = FirebaseDatabase.getInstance().getReference().child("Faces_Detected").child(datetime);
-
-
-                // Defining the child of storageReference
-                final StorageReference ref = storageReference.child("Images/" + datetime + "/"+ UUID.randomUUID().toString());
-
-                // converting the obtained Bitmap to Bytes to send to Firebase
-
-                ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-                individualFaceBitmap.compress(Bitmap.CompressFormat.JPEG,100,byteArrayOutputStream);
-                final byte[] data = byteArrayOutputStream.toByteArray();
-
-                final int finalI = i;
-                ref.putBytes(data)
-                        .addOnSuccessListener(
-                                new OnSuccessListener<UploadTask.TaskSnapshot>() {
-
-                                    @Override
-                                    public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
-                                        // Image uploaded successfully
-                                        // Dismiss dialog
-                                        Task<Uri> uriTask = taskSnapshot.getStorage().getDownloadUrl();
-                                        while (!uriTask.isSuccessful()) ;
-
-                                        // getting the URL of image uploaded to
-                                        Uri downloadUrl = uriTask.getResult();
-
-                                        // sending Data to Realtime Database
-                                        String key = reference.push().getKey();
-                                        assert downloadUrl != null;
-                                        IndividualFaceData faceLandmarkData = new IndividualFaceData(facesLandmarkDataList.get(finalI).getLeftEar().toString(),facesLandmarkDataList.get(finalI).getRightEar().toString(),facesLandmarkDataList.get(finalI).getLeftEye().toString(),facesLandmarkDataList.get(finalI).getRightEye().toString(), facesLandmarkDataList.get(finalI).getLeftMouth().toString(), facesLandmarkDataList.get(finalI).getRightMouth().toString(),facesLandmarkDataList.get(finalI).getNoseBase().toString(), downloadUrl.toString(),"Saikiran Kopparthi");
-                                        reference.child(key).setValue(faceLandmarkData);
-
-                                        progressDialog.dismiss();
-                                        Toast.makeText(FaceDetectionActivity.this, "Faces Uploaded Successfully !", Toast.LENGTH_SHORT).show();
-
-                                    }
-                                })
-
-                        .addOnFailureListener(new OnFailureListener() {
-                            @Override
-                            public void onFailure(@NonNull Exception e) {
-
-                                // Error, Image not uploaded
-                                progressDialog.dismiss();
-                                Toast.makeText(FaceDetectionActivity.this,
-                                        "Failed " + e.getMessage(),
-                                        Toast.LENGTH_SHORT).show();
-                            }
-                        })
-                        .addOnProgressListener(
-                                new OnProgressListener<UploadTask.TaskSnapshot>() {
-
-                                    // Progress Listener for loading
-                                    // percentage on the dialog box
-                                    @Override
-                                    public void onProgress(
-                                            UploadTask.TaskSnapshot taskSnapshot) {
-                                        double progress
-                                                = (100.0
-                                                * taskSnapshot.getBytesTransferred()
-                                                / taskSnapshot.getTotalByteCount());
-                                        progressDialog.setMessage(
-                                                "Uploaded "
-                                                        + (int) progress + "%");
-                                    }
-                                });
-            }
-        }
-    }
 
     private Bitmap addWhiteBorder(Bitmap bmp, int borderSize) {
         Bitmap bmpWithBorder = Bitmap.createBitmap(bmp.getWidth() + borderSize * 2, bmp.getHeight() + borderSize * 2, bmp.getConfig());
@@ -707,8 +497,5 @@ public class FaceDetectionActivity extends AppCompatActivity {
         String[] parts = point.split(",");
         return parts[1].trim().substring(0, parts[1].trim().length() - 1).trim();
     }
-
-
-
 
 }
