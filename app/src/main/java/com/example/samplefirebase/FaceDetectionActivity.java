@@ -55,8 +55,10 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 public class FaceDetectionActivity extends AppCompatActivity {
@@ -113,6 +115,8 @@ public class FaceDetectionActivity extends AppCompatActivity {
     private static final String TF_OD_API_LABELS_FILE = "file:///android_asset/labelmap.txt";
 
     private Bitmap faceBmp = null;
+
+    private HashMap<String, SimilarityClassifier.Recognition> registered;
 
     //private static final DetectorMode MODE = DetectorMode.TF_OD_API;
     // Minimum detection confidence to track a detection.
@@ -208,7 +212,7 @@ public class FaceDetectionActivity extends AppCompatActivity {
             }
         });
 
-       // detector.loadData();
+        detector.loadData();
 
 
        /* btnRecognizeFace.setOnClickListener(new View.OnClickListener() {
@@ -219,8 +223,60 @@ public class FaceDetectionActivity extends AppCompatActivity {
         });
 */
 
+        registered = new HashMap<>();
+
+
 
     }
+
+    public void loadData() {
+
+        registered = new HashMap<>();
+
+        myRef = FirebaseDatabase.getInstance().getReference("Faces_Data");
+
+        myRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                if(snapshot.exists()) {
+
+                    for (DataSnapshot snapshot1 : snapshot.getChildren()) {
+                        //Fetching Data
+                        final String name = Objects.requireNonNull(snapshot1.getValue(RegisterFaceData.class)).getName();
+
+                        final Object extra = (Object) Objects.requireNonNull(snapshot1.getValue(RegisterFaceData.class)).getImgUrl();
+
+                        SimilarityClassifier.Recognition  recognition = new SimilarityClassifier.Recognition("0","",-1.0f,new RectF());
+                        recognition.setExtra(extra);
+                        //String id = Objects.requireNonNull(snapshot1.child("Recognition").);
+                        // String title = Objects.requireNonNull(snapshot1.child("Recognition").getValue(Recognition.class)).getTitle();
+                        //Float distance = Objects.requireNonNull(snapshot1.child("Recognition").getValue(Recognition.class)).getDistance();
+                        //Object extra = Objects.requireNonNull(snapshot1.child("Recognition").getValue(Recognition.class)).getExtra();
+                        // RectF location = Objects.requireNonNull(snapshot1.child("Recognition").getValue(Recognition.class)).getLocation();
+                        //Integer color = Objects.requireNonNull(snapshot1.child("Recognition").getValue(Recognition.class)).getColor();
+                        Bitmap crop = null;
+
+
+                        // SimilarityClassifier.Recognition recognition = snapshot1.child("Recognition").getValue(SimilarityClassifier.Recognition.class);
+
+                        // adding to Hash Map
+                        registered.put(name,recognition);
+
+
+                    }
+
+                    Toast.makeText(FaceDetectionActivity.this, "Registered Size"+registered.size(), Toast.LENGTH_SHORT).show();
+
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                // Error Occurred. Toast Message not working
+            }
+        });
+    }
+
 
     public void selectImage() {
         // Defining Implicit Intent to mobile gallery

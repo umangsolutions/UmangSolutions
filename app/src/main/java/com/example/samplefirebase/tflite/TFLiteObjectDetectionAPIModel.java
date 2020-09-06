@@ -5,6 +5,7 @@ import android.content.res.AssetManager;
 import android.graphics.Bitmap;
 import android.graphics.RectF;
 import android.os.Trace;
+import android.provider.ContactsContract;
 import android.util.Log;
 import android.util.Pair;
 import android.widget.Toast;
@@ -82,10 +83,9 @@ public class TFLiteObjectDetectionAPIModel implements SimilarityClassifier {
     // Face Mask Detector Output
     private float[][] output;
 
-    private HashMap<String, Recognition> registered;
+    public HashMap<String, Recognition> registered = new HashMap<>();
 
     private DatabaseReference databaseReference,myRef;
-
 
 
     public void loadData() {
@@ -103,31 +103,10 @@ public class TFLiteObjectDetectionAPIModel implements SimilarityClassifier {
                         //Fetching Data
                        final String name = Objects.requireNonNull(snapshot1.getValue(RegisterFaceData.class)).getName();
 
-                        myRef.child("Recognition").addListenerForSingleValueEvent(new ValueEventListener() {
-                            @Override
-                            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                                if(snapshot.exists()) {
-                                    String id = snapshot.getValue(SimilarityClassifier.Recognition.class).getId();
-                                    String title = snapshot.getValue(SimilarityClassifier.Recognition.class).getTitle();
-                                    Float distance = snapshot.getValue(SimilarityClassifier.Recognition.class).getDistance();
-                                    Object extra = snapshot.getValue(SimilarityClassifier.Recognition.class).getExtra();
-                                    RectF location = snapshot.getValue(SimilarityClassifier.Recognition.class).getLocation();
-                                    Integer color = snapshot.getValue(SimilarityClassifier.Recognition.class).getColor();
-                                    Bitmap crop = null;
+                       final Object extra = (Object) Objects.requireNonNull(snapshot1.getValue(RegisterFaceData.class)).getImgUrl();
 
-                                    SimilarityClassifier.Recognition recognition = new SimilarityClassifier.Recognition(id,title,distance,null,location,color,crop);
-
-                                    registered.put(name,recognition);
-
-                                }
-                            }
-
-                            @Override
-                            public void onCancelled(@NonNull DatabaseError error) {
-                                 // Error Occurred
-                            }
-                        });
-
+                       SimilarityClassifier.Recognition  recognition = new SimilarityClassifier.Recognition("0","",-1.0f,new RectF());
+                       recognition.setExtra(extra);
                        //String id = Objects.requireNonNull(snapshot1.child("Recognition").);
                        // String title = Objects.requireNonNull(snapshot1.child("Recognition").getValue(Recognition.class)).getTitle();
                         //Float distance = Objects.requireNonNull(snapshot1.child("Recognition").getValue(Recognition.class)).getDistance();
@@ -140,6 +119,7 @@ public class TFLiteObjectDetectionAPIModel implements SimilarityClassifier {
                        // SimilarityClassifier.Recognition recognition = snapshot1.child("Recognition").getValue(SimilarityClassifier.Recognition.class);
 
                         // adding to Hash Map
+                        registered.put(name,recognition);
 
                     }
                 }
@@ -152,6 +132,7 @@ public class TFLiteObjectDetectionAPIModel implements SimilarityClassifier {
         });
     }
 
+
     public void register(String name, String JNTU, String Department, String Section,Recognition rec) {
 
         databaseReference = FirebaseDatabase.getInstance().getReference().child("Faces_Data");
@@ -160,14 +141,13 @@ public class TFLiteObjectDetectionAPIModel implements SimilarityClassifier {
 
         String key = databaseReference.push().getKey();
 
-        RegisterFaceData registerFaceData = new RegisterFaceData(name, JNTU, Section, Department, "");
-        Recognition recognition = new Recognition(rec.getId(),rec.getTitle(),rec.getDistance(),null,rec.getLocation(),rec.getColor(),null);
+        RegisterFaceData registerFaceData = new RegisterFaceData(name, JNTU, Section, Department, rec.getExtra().toString(),rec.getLocation().bottom,rec.getLocation().isEmpty(),rec.getLocation().left,rec.getLocation().right,rec.getLocation().bottom);
+        //Recognition recognition = new Recognition(rec.getId(),rec.getTitle(),rec.getDistance(),null,rec.getLocation(),rec.getColor(),null);
 
         assert key != null;
        databaseReference.child(key).setValue(registerFaceData);
-        databaseReference.child(key).child("Recognition").setValue(recognition);
+       // databaseReference.child(key).child("Recognition").setValue(recognition);
 
-       // registered.put(name, rec);
 
     }
 
@@ -250,7 +230,7 @@ public class TFLiteObjectDetectionAPIModel implements SimilarityClassifier {
 
         for (Map.Entry<String, Recognition> entry : registered.entrySet()) {
             final String name = entry.getKey();
-            final float[] knownEmb = ((float[][]) entry.getValue().getExtra())[0];
+            final float[] knownEmb = (float[]) entry.getValue().getExtra();
 
             float distance = 0;
             for (int i = 0; i < emb.length; i++) {

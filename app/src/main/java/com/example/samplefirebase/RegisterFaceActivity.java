@@ -142,6 +142,9 @@ public class RegisterFaceActivity extends AppCompatActivity {
                 if(mappedRecognitions!=null) {
                     SimilarityClassifier.Recognition rec = mappedRecognitions.get(0);
                     detector.register(name,JNTU,Department,Section,rec);
+
+
+                    Toast.makeText(RegisterFaceActivity.this, ""+rec.getExtra().toString(), Toast.LENGTH_SHORT).show();
                    //uploadData(rec.getCrop(),name, JNTU, Section, Department);
                 }
 
@@ -183,6 +186,8 @@ public class RegisterFaceActivity extends AppCompatActivity {
         }
 
         faceBmp = Bitmap.createBitmap(TF_OD_API_INPUT_SIZE, TF_OD_API_INPUT_SIZE, Bitmap.Config.ARGB_8888);
+
+        detector.loadData();
 
 
 
@@ -326,8 +331,9 @@ public class RegisterFaceActivity extends AppCompatActivity {
                         (int) faceBB.width(),
                         (int) faceBB.height());
 
-              final List<SimilarityClassifier.Recognition> resultsAux = detector.recognizeImage(faceBmp,true);
+                imgFaceView.setImageBitmap(crop);
 
+                final List<SimilarityClassifier.Recognition> resultsAux = detector.recognizeImage(faceBmp,true);
 
                 if (resultsAux.size() > 0) {
 
@@ -341,7 +347,7 @@ public class RegisterFaceActivity extends AppCompatActivity {
 
                     float conf = result.getDistance();
 
-                    Toast.makeText(this, ""+conf, Toast.LENGTH_SHORT).show();
+                    //Toast.makeText(this, ""+conf, Toast.LENGTH_SHORT).show();
                     if (conf < 1.0f) {
 
                         confidence = conf;
@@ -355,22 +361,22 @@ public class RegisterFaceActivity extends AppCompatActivity {
                             color = Color.RED;
                         }
                     }
-
                 }
 
 
-               // setting Features of the Face
-                final SimilarityClassifier.Recognition result = new SimilarityClassifier.Recognition(
-                        "0", label, confidence, boundingBox);
+                final SimilarityClassifier.Recognition result = new SimilarityClassifier.Recognition("0", label, confidence, boundingBox);
 
                 result.setColor(color);
                 result.setLocation(boundingBox);
                 result.setExtra(extra);
                 result.setCrop(crop);
 
+                Toast.makeText(RegisterFaceActivity.this, ""+extra + "\n"+ crop + "\n" + confidence + "Label: "+label, Toast.LENGTH_SHORT).show();
+
                 // adding to List
                 mappedRecognitions.add(result);
             }
+
 
         }
 
@@ -436,8 +442,8 @@ public class RegisterFaceActivity extends AppCompatActivity {
                                     // sending Data to Realtime Database
                                     String key = reference.push().getKey();
                                     assert downloadUrl != null;
-                                    RegisterFaceData registerFaceData = new RegisterFaceData(name, JNTU, section, department, downloadUrl.toString());
-                                    reference.child(key).setValue(registerFaceData);
+                                  //  RegisterFaceData registerFaceData = new RegisterFaceData(name, JNTU, section, department, downloadUrl.toString());
+                                    //reference.child(key).setValue(registerFaceData);
 
                                     progressDialog.dismiss();
                                     Toast.makeText(RegisterFaceActivity.this, "Student Registered Successfully !", Toast.LENGTH_SHORT).show();

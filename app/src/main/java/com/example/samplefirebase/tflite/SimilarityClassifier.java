@@ -70,6 +70,7 @@ public interface SimilarityClassifier {
         public void setExtra(Object extra) {
             this.extra = extra;
         }
+
         public Object getExtra() {
             return this.extra;
         }
