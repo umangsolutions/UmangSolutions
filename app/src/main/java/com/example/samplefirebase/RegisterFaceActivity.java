@@ -15,6 +15,7 @@ import android.graphics.RectF;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -144,7 +145,7 @@ public class RegisterFaceActivity extends AppCompatActivity {
                     detector.register(name,JNTU,Department,Section,rec);
 
 
-                    Toast.makeText(RegisterFaceActivity.this, ""+rec.getExtra().toString(), Toast.LENGTH_SHORT).show();
+                    Toast.makeText(RegisterFaceActivity.this, ""+rec.getExtra(), Toast.LENGTH_SHORT).show();
                    //uploadData(rec.getCrop(),name, JNTU, Section, Department);
                 }
 
@@ -187,7 +188,7 @@ public class RegisterFaceActivity extends AppCompatActivity {
 
         faceBmp = Bitmap.createBitmap(TF_OD_API_INPUT_SIZE, TF_OD_API_INPUT_SIZE, Bitmap.Config.ARGB_8888);
 
-        detector.loadData();
+       //detector.loadData();
 
 
 
@@ -307,75 +308,80 @@ public class RegisterFaceActivity extends AppCompatActivity {
 
             final boolean goodConfidence = true; //face.get;
 
-            if(boundingBox!=null && goodConfidence) {
+            RectF faceBB = new RectF(boundingBox);
 
-                RectF faceBB = new RectF(boundingBox);
+            float sx = ((float) TF_OD_API_INPUT_SIZE) / faceBB.width();
+            float sy = ((float) TF_OD_API_INPUT_SIZE) / faceBB.height();
+            Matrix matrix = new Matrix();
+            matrix.postTranslate(-faceBB.left, -faceBB.top);
+            matrix.postScale(sx, sy);
 
-                float sx = ((float) TF_OD_API_INPUT_SIZE) / faceBB.width();
-                float sy = ((float) TF_OD_API_INPUT_SIZE) / faceBB.height();
-                Matrix matrix = new Matrix();
-                matrix.postTranslate(-faceBB.left, -faceBB.top);
-                matrix.postScale(sx, sy);
+            cvFace.drawBitmap(scaledBitmap,matrix,null);
 
-                cvFace.drawBitmap(scaledBitmap,matrix,null);
+            String label = "";
+            float confidence = -1f;
+            Integer color = Color.BLUE;
+            Object extra = null;
+            Bitmap crop = null;
 
-                String label = "";
-                float confidence = -1f;
-                Integer color = Color.BLUE;
-                Object extra = null;
-                Bitmap crop = null;
+            crop = Bitmap.createBitmap(scaledBitmap,
+                    (int) faceBB.left,
+                    (int) faceBB.top,
+                    (int) faceBB.width(),
+                    (int) faceBB.height());
 
-                crop = Bitmap.createBitmap(scaledBitmap,
-                        (int) faceBB.left,
-                        (int) faceBB.top,
-                        (int) faceBB.width(),
-                        (int) faceBB.height());
+            imgFaceView.setImageBitmap(crop);
 
-                imgFaceView.setImageBitmap(crop);
+            final List<SimilarityClassifier.Recognition> resultsAux = detector.recognizeImage(faceBmp,true);
 
-                final List<SimilarityClassifier.Recognition> resultsAux = detector.recognizeImage(faceBmp,true);
+            if (resultsAux.size() > 0) {
 
-                if (resultsAux.size() > 0) {
+                SimilarityClassifier.Recognition result = resultsAux.get(0);
 
-                    SimilarityClassifier.Recognition result = resultsAux.get(0);
-
-                    extra = result.getExtra();
+                extra = result.getExtra();
 //          Object extra = result.getExtra();
 //          if (extra != null) {
 //            LOGGER.i("embeeding retrieved " + extra.toString());
 //          }
 
-                    float conf = result.getDistance();
+                float conf = result.getDistance();
 
-                    //Toast.makeText(this, ""+conf, Toast.LENGTH_SHORT).show();
-                    if (conf < 1.0f) {
+                //Toast.makeText(this, ""+conf, Toast.LENGTH_SHORT).show();
+                if (conf < 1.0f) {
 
-                        confidence = conf;
-                        label = result.getTitle();
+                    confidence = conf;
+                    label = result.getTitle();
 
-                        Toast.makeText(RegisterFaceActivity.this, "Found: " + label, Toast.LENGTH_SHORT).show();
-                        if (result.getId().equals("0")) {
-                            color = Color.GREEN;
-                        }
-                        else {
-                            color = Color.RED;
-                        }
+                    Toast.makeText(RegisterFaceActivity.this, "Found: " + label, Toast.LENGTH_SHORT).show();
+
+                    if (result.getId().equals("0")) {
+                        color = Color.GREEN;
+                    }
+                    else {
+                        color = Color.RED;
                     }
                 }
-
-
-                final SimilarityClassifier.Recognition result = new SimilarityClassifier.Recognition("0", label, confidence, boundingBox);
-
-                result.setColor(color);
-                result.setLocation(boundingBox);
-                result.setExtra(extra);
-                result.setCrop(crop);
-
-                Toast.makeText(RegisterFaceActivity.this, ""+extra + "\n"+ crop + "\n" + confidence + "Label: "+label, Toast.LENGTH_SHORT).show();
-
-                // adding to List
-                mappedRecognitions.add(result);
             }
+
+
+            final SimilarityClassifier.Recognition result = new SimilarityClassifier.Recognition("0", label, confidence, boundingBox);
+
+            result.setColor(color);
+            result.setLocation(boundingBox);
+            result.setExtra(extra);
+            result.setCrop(crop);
+
+            Log.d("TAG", "onFacesDetected: "+extra.toString().length());
+
+
+
+
+
+
+            Toast.makeText(RegisterFaceActivity.this, ""+ extra + "\n"+ crop + "\n" + confidence + "Label: "+label, Toast.LENGTH_SHORT).show();
+
+            // adding to List
+            mappedRecognitions.add(result);
 
 
         }

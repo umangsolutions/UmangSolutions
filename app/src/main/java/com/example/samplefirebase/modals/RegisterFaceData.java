@@ -1,10 +1,11 @@
 package com.example.samplefirebase.modals;
 
 import java.io.Serializable;
+import java.util.List;
 
-public class RegisterFaceData implements Serializable {
+public class RegisterFaceData {
     private String name, JNTU, section, department;
-    private Object imgUrl;
+    private String imgUrl;
     private Float bottom;
     private Boolean empty;
     private Float left,right,top;
@@ -12,7 +13,7 @@ public class RegisterFaceData implements Serializable {
     public RegisterFaceData() {
     }
 
-    public RegisterFaceData(String name, String JNTU, String section, String department, Object imgUrl, Float bottom, Boolean empty, Float left, Float right, Float top) {
+    public RegisterFaceData(String name, String JNTU, String section, String department, String imgUrl, Float bottom, Boolean empty, Float left, Float right, Float top) {
         this.name = name;
         this.JNTU = JNTU;
         this.section = section;
@@ -57,11 +58,11 @@ public class RegisterFaceData implements Serializable {
         this.department = department;
     }
 
-    public Object getImgUrl() {
+    public String getImgUrl() {
         return imgUrl;
     }
 
-    public void setImgUrl(Object imgUrl) {
+    public void setImgUrl(String imgUrl) {
         this.imgUrl = imgUrl;
     }
 

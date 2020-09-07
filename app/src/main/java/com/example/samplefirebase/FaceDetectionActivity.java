@@ -20,6 +20,7 @@ import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
@@ -54,6 +55,7 @@ import com.google.mlkit.vision.face.FaceLandmark;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -212,7 +214,7 @@ public class FaceDetectionActivity extends AppCompatActivity {
             }
         });
 
-        detector.loadData();
+        //detector.loadData();
 
 
        /* btnRecognizeFace.setOnClickListener(new View.OnClickListener() {
@@ -226,8 +228,10 @@ public class FaceDetectionActivity extends AppCompatActivity {
         registered = new HashMap<>();
 
 
+        loadData();
 
     }
+
 
     public void loadData() {
 
@@ -244,7 +248,12 @@ public class FaceDetectionActivity extends AppCompatActivity {
                         //Fetching Data
                         final String name = Objects.requireNonNull(snapshot1.getValue(RegisterFaceData.class)).getName();
 
-                        final Object extra = (Object) Objects.requireNonNull(snapshot1.getValue(RegisterFaceData.class)).getImgUrl();
+                        final String extra = Objects.requireNonNull(snapshot1.getValue(RegisterFaceData.class)).getImgUrl().toString();
+
+
+                        
+
+                        // float extraNum = Float.parseFloat(extra);
 
                         SimilarityClassifier.Recognition  recognition = new SimilarityClassifier.Recognition("0","",-1.0f,new RectF());
                         recognition.setExtra(extra);
@@ -256,6 +265,8 @@ public class FaceDetectionActivity extends AppCompatActivity {
                         //Integer color = Objects.requireNonNull(snapshot1.child("Recognition").getValue(Recognition.class)).getColor();
                         Bitmap crop = null;
 
+                        Toast.makeText(FaceDetectionActivity.this, "Extra Num: " + extra, Toast.LENGTH_SHORT).show();
+
 
                         // SimilarityClassifier.Recognition recognition = snapshot1.child("Recognition").getValue(SimilarityClassifier.Recognition.class);
 
@@ -265,7 +276,7 @@ public class FaceDetectionActivity extends AppCompatActivity {
 
                     }
 
-                    Toast.makeText(FaceDetectionActivity.this, "Registered Size"+registered.size(), Toast.LENGTH_SHORT).show();
+                    //Toast.makeText(FaceDetectionActivity.this, "Registered Size"+registered.size() , Toast.LENGTH_SHORT).show();
 
                 }
             }
@@ -276,6 +287,7 @@ public class FaceDetectionActivity extends AppCompatActivity {
             }
         });
     }
+
 
 
     public void selectImage() {
@@ -404,7 +416,7 @@ public class FaceDetectionActivity extends AppCompatActivity {
 
                 result.setColor(color);
                 result.setLocation(boundingBox);
-                result.setExtra(extra);
+                result.setExtra(String.valueOf(extra));
                 result.setCrop(crop);
 
                 // adding to List

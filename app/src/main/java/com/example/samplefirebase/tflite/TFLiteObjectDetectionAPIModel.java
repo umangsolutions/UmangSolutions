@@ -33,6 +33,7 @@ import java.nio.ByteOrder;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -83,11 +84,14 @@ public class TFLiteObjectDetectionAPIModel implements SimilarityClassifier {
     // Face Mask Detector Output
     private float[][] output;
 
-    public HashMap<String, Recognition> registered = new HashMap<>();
+    private List faceFeaturesList;
+
+    private HashMap<String, Recognition> registered = new HashMap<>();
 
     private DatabaseReference databaseReference,myRef;
 
 
+/*
     public void loadData() {
 
         registered = new HashMap<>();
@@ -103,7 +107,7 @@ public class TFLiteObjectDetectionAPIModel implements SimilarityClassifier {
                         //Fetching Data
                        final String name = Objects.requireNonNull(snapshot1.getValue(RegisterFaceData.class)).getName();
 
-                       final Object extra = (Object) Objects.requireNonNull(snapshot1.getValue(RegisterFaceData.class)).getImgUrl();
+                       final List extra = (List) snapshot1.getValue(RegisterFaceData.class).getImgUrl();
 
                        SimilarityClassifier.Recognition  recognition = new SimilarityClassifier.Recognition("0","",-1.0f,new RectF());
                        recognition.setExtra(extra);
@@ -131,7 +135,7 @@ public class TFLiteObjectDetectionAPIModel implements SimilarityClassifier {
             }
         });
     }
-
+*/
 
     public void register(String name, String JNTU, String Department, String Section,Recognition rec) {
 
@@ -141,13 +145,16 @@ public class TFLiteObjectDetectionAPIModel implements SimilarityClassifier {
 
         String key = databaseReference.push().getKey();
 
-        RegisterFaceData registerFaceData = new RegisterFaceData(name, JNTU, Section, Department, rec.getExtra().toString(),rec.getLocation().bottom,rec.getLocation().isEmpty(),rec.getLocation().left,rec.getLocation().right,rec.getLocation().bottom);
+
+
+        RegisterFaceData registerFaceData = new RegisterFaceData(name, JNTU, Section, Department,rec.getExtra().toString(),rec.getLocation().bottom,rec.getLocation().isEmpty(),rec.getLocation().left,rec.getLocation().right,rec.getLocation().bottom);
         //Recognition recognition = new Recognition(rec.getId(),rec.getTitle(),rec.getDistance(),null,rec.getLocation(),rec.getColor(),null);
 
         assert key != null;
        databaseReference.child(key).setValue(registerFaceData);
-       // databaseReference.child(key).child("Recognition").setValue(recognition);
+       // databaseReference.child(key).child("Recognition").setValue(recognition);*/
 
+        registered.put(name,rec);
 
     }
 
@@ -230,7 +237,11 @@ public class TFLiteObjectDetectionAPIModel implements SimilarityClassifier {
 
         for (Map.Entry<String, Recognition> entry : registered.entrySet()) {
             final String name = entry.getKey();
-            final float[] knownEmb = (float[]) entry.getValue().getExtra();
+
+
+
+            final float[] knownEmb = ((float[][]) entry.getValue().getExtra())[0];
+
 
             float distance = 0;
             for (int i = 0; i < emb.length; i++) {
